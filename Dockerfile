@@ -16,4 +16,7 @@ COPY hsr_tier_list.json .
 # 確保 Python 輸出不 buffer（log 即時顯示）
 ENV PYTHONUNBUFFERED=1
 
+# 設定伺服器時區為台灣時間 (UTC+8)
+ENV TZ="Asia/Taipei"
+
 CMD ["python", "genshin_scraper_original.py"]
