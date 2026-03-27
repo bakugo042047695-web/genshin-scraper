@@ -1183,7 +1183,7 @@ def run_game(main_page, detail_page, game_key, g, gc, price_tracker):
 
     print(f"\n📊 [{name}] 抓取新成交紀錄...")
     new_completed = scrape_pages(
-        main_page, g["completed_url"], 50, "已完成",
+        main_page, g["completed_url"], 100, "已完成",
         stop_at_seen=seen_urls,
         do_detail=False,  # 已完成交易 detail page 成交後無法訪問，改用 listing_seen_map 推算上架天數
         char_weights=g["char_weights"], alias_map=g["alias_map"])
@@ -1387,11 +1387,11 @@ def run_scrape():
     print(f"\n✅ 全部完成！{datetime.now().strftime('%H:%M:%S')}")
 
 if __name__ == "__main__":
-    print("⏰ 排程啟動，每15分鐘執行一次（立即先跑一次）")
+    print("⏰ 排程啟動，每10分鐘執行一次（立即先跑一次）")
     print("⚡ 快速監控：每2分鐘掃一次首頁新上架（不用 Playwright，超輕量）")
     GAMES = build_games_config()
     run_scrape()
-    schedule.every(15).minutes.do(run_scrape)
+    schedule.every(10).minutes.do(run_scrape)
     schedule.every(2).minutes.do(lambda: fast_track_scan(GAMES))
     while True:
         schedule.run_pending()
