@@ -1084,8 +1084,8 @@ def scrape_pages(main_page, base_url, max_pages, label="",
                         
                     post_time = time_el.inner_text().strip() if time_el else ""
 
-                    # 過濾列表頁誤讀的成交數（括號數字）
-                    if post_time and re.match(r'^\(\d+\)$', post_time.strip()):
+                    # 過濾列表頁誤讀的問與答數量（例如 (5) 或 (99+)）
+                    if post_time and re.match(r'^\(.*\)$', post_time.strip()):
                         post_time = ''
 
                     if any(kw in title for kw in TRASH_KEYWORDS):
