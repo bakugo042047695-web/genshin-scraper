@@ -1043,6 +1043,8 @@ def scrape_pages(main_page, base_url, max_pages, label="",
             print(f"    找到 {len(items)} 個")
 
             new_in_page = 0
+            seen_count_in_page = 0
+            
             for item in items:
                 try:
                     title_el = item.query_selector("a.show-title")
