@@ -127,8 +127,8 @@ def build_games_config():
         },
         "崩鐵": {
             "emoji": "🚂",
-            "list_url": "https://www.8591.com.tw/v3/mall/list/44693?searchGame=44693&searchServer=53160&searchType=2&accountTag=3&priceStart=100&priceEnd=100000&post_time_sort=1",
-            "completed_url": "https://www.8591.com.tw/v3/mall/list/44693?searchGame=44693&searchServer=53160&searchType=2&accountTag=3&priceStart=100&priceEnd=100000&completed=1&post_time_sort=1",
+            "list_url": "https://www.8591.com.tw/v3/mall/list/44693?searchGame=44693&searchServer=53160&searchType=2&accountTag=3&priceStart=100&priceEnd=200000&post_time_sort=1",
+            "completed_url": "https://www.8591.com.tw/v3/mall/list/44693?searchGame=44693&searchServer=53160&searchType=2&accountTag=3&priceStart=100&priceEnd=200000&completed=1&post_time_sort=2",
             "discord": "https://discord.com/api/webhooks/1483469454376566943/QIaka_rST9Af8dQayNIKf11zM4a6X06k-3MKFIHbB0kK9AJpcR3Lp6fSys_xeA2oGlZT",
             "discord_bargain": "https://discord.com/api/webhooks/1484537146915291176/gHNGq_1m3j_jTJfZzGK2LSOKUxg1QAHmi_ejCP2Frtb9Qg0X1tkVBC4PihH34WObL0u1",
             "discord_maxconst": "https://discord.com/api/webhooks/1484537547689431222/36fxNxtjrLg2LAmvwbrKHE4EiWpor3uJD8mJxQUghpiZd3X1GncMHOJSgG0TH4V32LwP",
