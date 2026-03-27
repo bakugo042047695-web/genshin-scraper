@@ -1036,6 +1036,8 @@ def scrape_pages(main_page, base_url, max_pages, label="",
             time.sleep(random.uniform(3, 4))
             items = main_page.query_selector_all("div.list-item")
             if not items:
+                items = main_page.query_selector_all(".commodity-list > li")
+            if not items:
                 print("    無商品，停止。")
                 break
             print(f"    找到 {len(items)} 個")
@@ -1046,23 +1048,38 @@ def scrape_pages(main_page, base_url, max_pages, label="",
                     title_el = item.query_selector("a.show-title")
                     if not title_el:
                         title_el = item.query_selector("span.show-title")
-                    price_el = item.query_selector("span.orange")
-                    if not price_el:
-                        price_el = item.query_selector("div.list-item-price")
-                    time_el = item.query_selector(".list-item-bread span.ml15")
-                    if not time_el:
-                        time_el = item.query_selector(".fc3")
+                    
                     seller_el = item.query_selector("a[href^='im://']")
                     seller_id = seller_el.get_attribute("data-fuid") if seller_el else ""
 
-                    if not title_el or not price_el:
+                    if not title_el:
                         continue
+                    
                     title = title_el.inner_text().strip()
                     detail_url = get_item_url(item, title_el)
-                    price_text = re.sub(r'[^\d]', '', price_el.inner_text())
-                    if not price_text:
+                    
+                    price = 0
+                    price_el = item.query_selector("span.orange")
+                    if not price_el:
+                        price_el = item.query_selector("div.list-item-price")
+                        
+                    if price_el:
+                        price_text = re.sub(r'[^\d]', '', price_el.inner_text())
+                        if price_text:
+                            price = int(price_text)
+                    elif seller_el:
+                        im_href = seller_el.get_attribute("href") or ""
+                        pm = re.search(r'price=(\d+)', im_href)
+                        if pm:
+                            price = int(pm.group(1))
+
+                    if price <= 0:
                         continue
-                    price = int(price_text)
+
+                    time_el = item.query_selector(".list-item-bread span.ml15")
+                    if not time_el:
+                        time_el = item.query_selector(".fc3")
+                        
                     post_time = time_el.inner_text().strip() if time_el else ""
 
                     # 過濾列表頁誤讀的成交數（括號數字）
