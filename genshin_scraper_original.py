@@ -192,13 +192,13 @@ def save_listing_seen(filepath, seen_map):
                 "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M")
             }, f, ensure_ascii=False, indent=2)
 
-def calc_days_on_market(post_time_str, seen_map, url, seller_id=""):
+def calc_days_on_market(post_time_str, seen_map, url, seller_id="", title=""):
     """
     計算售出所需天數：
-    優先用詳情頁抓到的上架時間，
-    其次用 listing_seen 的首次發現時間（精確 URL 比對），
-    再其次傳入 seller_id 作 fallback（同一賣家改價導致 URL 變更），
-    都沒有就返回 -
+    1. 優先用詳情頁抓到的上架時間
+    2. 其次用 listing_seen 的首次發現時間（精確 URL 比對）
+    3. 再其次用 title 作精確比對（同一個賣家改價重拋，但標題沒改）
+    4. 最後傳入 seller_id 作 fallback（改標題又改價，只能用賣家最早出現時間估算）
     """
     today = datetime.now()
 
@@ -224,7 +224,19 @@ def calc_days_on_market(post_time_str, seen_map, url, seller_id=""):
         except:
             pass
 
-    # 方法C：同一賣家 fallback（賣家改價導致 URL 換掉）
+    # 方法C：精確標題比對（同一商品改價重拋，標題不變）
+    if title:
+        title_idx = seen_map.get("__title_idx__", {})
+        earliest_by_title = title_idx.get(title, "")
+        if earliest_by_title:
+            try:
+                d = datetime.strptime(earliest_by_title, "%Y-%m-%d")
+                days = (today - d).days
+                return f"≥{days}*"  # 加 * 表示是用相同標題推算
+            except:
+                pass
+
+    # 方法D：同一賣家 fallback（賣家改價且改標題，只能用賣家最早活耀日估計）
     if seller_id:
         seller_idx = seen_map.get("__seller_idx__", {})
         earliest = seller_idx.get(seller_id, "")
@@ -404,8 +416,8 @@ def update_gsheet_completed(ws, new_trades, sellers, seen_map, high_tier_chars):
             if post_time and re.match(r'^\(\d+\)$', post_time.strip()):
                 post_time = ''
 
-            # 售出所需天數（優先詳情頁時間，其次 listing_seen，最後 seller fallback）
-            days = calc_days_on_market(post_time, seen_map, r['url'], r.get('seller_id', ''))
+            # 售出所需天數（優先詳情頁時間，其次 listing_seen，然後 title, 最後 seller fallback）
+            days = calc_days_on_market(post_time, seen_map, r['url'], r.get('seller_id', ''), r.get('title', ''))
 
             const_str = ", ".join(r.get('max_const', []))
 
@@ -1259,15 +1271,26 @@ def run_game(main_page, detail_page, game_key, g, gc, price_tracker):
 
     today_str = datetime.now().strftime("%Y-%m-%d")
     seller_idx = listing_seen_map.setdefault("__seller_idx__", {})
+    title_idx = listing_seen_map.setdefault("__title_idx__", {})
+    
     for r in listings:
         if r['url'] not in listing_seen_map:
             listing_seen_map[r['url']] = today_str
+            
         # 更新賣家索引：僅全變早（賣家首次上架的日期）
         sid = r.get('seller_id', '')
         if sid:
-            existing = seller_idx.get(sid, "")
-            if not existing or today_str < existing:
+            existing_s = seller_idx.get(sid, "")
+            if not existing_s or today_str < existing_s:
                 seller_idx[sid] = today_str
+                
+        # 更新標題索引：紀錄該標題第一次出現的日期
+        title_str = r.get('title', '').strip()
+        if title_str:
+            existing_t = title_idx.get(title_str, "")
+            if not existing_t or today_str < existing_t:
+                title_idx[title_str] = today_str
+                
     save_listing_seen(g["listing_seen_file"], listing_seen_map)
 
     game_tracker = price_tracker.get(name, {})
