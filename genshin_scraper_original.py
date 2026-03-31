@@ -192,13 +192,13 @@ def save_listing_seen(filepath, seen_map):
                 "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M")
             }, f, ensure_ascii=False, indent=2)
 
-def calc_days_on_market(post_time_str, seen_map, url, seller_id="", title=""):
+def calc_days_on_market(post_time_str, seen_map, url, seller_id="", title="", is_big_seller=False):
     """
     計算售出所需天數：
     1. 優先用詳情頁抓到的上架時間
     2. 其次用 listing_seen 的首次發現時間（精確 URL 比對）
     3. 再其次用 title 作精確比對（同一個賣家改價重拋，但標題沒改）
-    4. 最後傳入 seller_id 作 fallback（改標題又改價，只能用賣家最早出現時間估算）
+    4. 最後傳入 seller_id 作 fallback（改標題又改價，只能用賣家最早出現時間估算。*排除大盤商*）
     """
     today = datetime.now()
 
@@ -236,8 +236,8 @@ def calc_days_on_market(post_time_str, seen_map, url, seller_id="", title=""):
             except:
                 pass
 
-    # 方法D：同一賣家 fallback（賣家改價且改標題，只能用賣家最早活耀日估計）
-    if seller_id:
+    # 方法D：同一賣家 fallback（賣家改價且改標題，只能用賣家最早活耀日估計。排除大盤商因為他們商品太多）
+    if seller_id and not is_big_seller:
         seller_idx = seen_map.get("__seller_idx__", {})
         earliest = seller_idx.get(seller_id, "")
         if earliest:
@@ -416,8 +416,13 @@ def update_gsheet_completed(ws, new_trades, sellers, seen_map, high_tier_chars):
             if post_time and re.match(r'^\(\d+\)$', post_time.strip()):
                 post_time = ''
 
-            # 售出所需天數（優先詳情頁時間，其次 listing_seen，然後 title, 最後 seller fallback）
-            days = calc_days_on_market(post_time, seen_map, r['url'], r.get('seller_id', ''), r.get('title', ''))
+            # 賣家ID與大盤商判定
+            sid = r.get('seller_id', '')
+            is_big = sellers.get(sid, {}).get("count", 0) >= BIG_SELLER_THRESHOLD
+            seller_str = f"🍽️{sid}（大盤商）" if is_big else sid
+
+            # 售出所需天數（優先詳情頁時間 -> listing_seen -> title -> 最後 seller fallback [排除大盤商]）
+            days = calc_days_on_market(post_time, seen_map, r['url'], sid, r.get('title', ''), is_big)
 
             const_str = ", ".join(r.get('max_const', []))
 
@@ -425,11 +430,6 @@ def update_gsheet_completed(ws, new_trades, sellers, seen_map, high_tier_chars):
             title = r.get('title', '')
             high_tier_found = [char for char in high_tier_chars if char in title]
             high_tier_str = ", ".join(high_tier_found) if high_tier_found else "-"
-
-            # 賣家ID
-            sid = r.get('seller_id', '')
-            is_big = sellers.get(sid, {}).get("count", 0) >= BIG_SELLER_THRESHOLD
-            seller_str = f"🍽️{sid}（大盤商）" if is_big else sid
 
             rows_to_add.append([
                 now_str,
