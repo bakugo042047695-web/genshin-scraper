@@ -1434,11 +1434,11 @@ def run_scrape():
     print(f"\n✅ 全部完成！{datetime.now().strftime('%H:%M:%S')}")
 
 if __name__ == "__main__":
-    print("⏰ 排程啟動，每10分鐘執行一次（立即先跑一次）")
+    print("⏰ 排程啟動，每30分鐘執行一次（立即先跑一次）")
     print("⚡ 快速監控：每2分鐘掃一次首頁新上架（不用 Playwright，超輕量）")
     GAMES = build_games_config()
     run_scrape()
-    schedule.every(10).minutes.do(run_scrape)
+    schedule.every(30).minutes.do(run_scrape)
     schedule.every(2).minutes.do(lambda: fast_track_scan(GAMES))
     while True:
         schedule.run_pending()
