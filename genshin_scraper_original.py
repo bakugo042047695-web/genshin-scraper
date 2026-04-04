@@ -44,14 +44,14 @@ TIER_WEIGHTS = {
 HIGH_TIER_LEVELS = {"tierSS", "tierS"}
 
 HEADERS = ["發現時間", "上架時間", "標題", "價格", "金角", "金武/專",
-           "純角CP", "含武CP", "加權CP", "預估獲利", "滿命角色", "優於均值", "賣家ID", "連結"]
+           "純角CP", "含武CP", "加權CP", "預估獲利", "滿命角色", "優於均值", "賣家ID", "連結", "歷來低價", "歷來高價"]
 
 COMPLETED_HEADERS = [
     "成交發現日", "上架時間", "售出所需天數",
     "標題", "價格", "金角", "金武/專",
     "滿命角色", "高Tier角色(SS/S)",
     "純角CP", "含武CP", "加權CP",
-    "賣家ID", "連結"
+    "賣家ID", "連結", "歷來低價", "歷來高價"
 ]
 
 # ===================== Tier List 載入 =====================
@@ -149,7 +149,13 @@ def build_games_config():
 
     return games
 
-# ===================== listing_seen 新版（含時間戳記）=====================
+# ===================== listing_seen 新版（含時間戳記與價格區間）=====================
+
+def __migrate_seen_map(seen_map):
+    for k, v in list(seen_map.items()):
+        if isinstance(v, str):
+            seen_map[k] = {"date": v}
+    return seen_map
 
 def load_listing_seen(filepath):
     db = get_mongo_db()
@@ -157,11 +163,10 @@ def load_listing_seen(filepath):
         doc = db["listing_seen"].find_one({"_id": _mongo_key(filepath)})
         if doc:
             seen_map = doc.get("seen_map", {})
-            # 相容舊格式：將 urls list 補進 seen_map
             for url in doc.get("urls", []):
                 if url not in seen_map:
-                    seen_map[url] = ""
-            return seen_map
+                    seen_map[url] = {"date": ""}
+            return __migrate_seen_map(seen_map)
         return {}
     if os.path.exists(filepath):
         with open(filepath, "r", encoding="utf-8") as f:
@@ -170,8 +175,8 @@ def load_listing_seen(filepath):
         seen_map = data.get("seen_map", {})
         for url in urls:
             if url not in seen_map:
-                seen_map[url] = ""
-        return seen_map
+                seen_map[url] = {"date": ""}
+        return __migrate_seen_map(seen_map)
     return {}
 
 def save_listing_seen(filepath, seen_map):
@@ -250,7 +255,29 @@ def calc_days_on_market(post_time_str, seen_map, url, seller_id="", title="", is
 
     return "-"
 
-# ===================== MongoDB 連線層 =====================
+def apply_price_updates_to_gsheet(ws, updates):
+    """將價格範圍異動 (歷來低價/高價) 批次更新回 Google Sheets 的 O/P 欄位"""
+    if not ws or not updates:
+        return
+    try:
+        urls_in_sheet = ws.col_values(14)
+        updates_batch = []
+        for u in updates:
+            try:
+                row_idx = urls_in_sheet.index(u["url"]) + 1
+                updates_batch.append({
+                    'range': f'O{row_idx}:P{row_idx}',
+                    'values': [[u["min_price"], u["max_price"]]]
+                })
+            except ValueError:
+                continue
+        if updates_batch:
+            ws.batch_update(updates_batch)
+            print(f"  Google Sheets 更新：同步了 {len(updates_batch)} 筆歷史標價極值")
+    except Exception as e:
+        print(f"  Google Sheets 標價極值更新失敗：{e}")
+
+# ===================== Discord / 警報功能 =====================
 
 _mongo_client = None
 _mongo_db = None
@@ -298,11 +325,11 @@ def init_gsheet(gc, game_name):
         try:
             ws = sh.worksheet(game_name)
         except:
-            ws = sh.add_worksheet(title=game_name, rows=5000, cols=14)
+            ws = sh.add_worksheet(title=game_name, rows=5000, cols=16)
         if not ws.get_all_values() or ws.cell(1, 1).value != "發現時間":
             ws.insert_row(HEADERS, 1)
-        if ws.row_count < 5000 or ws.col_count < 14:
-            ws.resize(rows=5000, cols=14)
+        if ws.row_count < 5000 or ws.col_count < 16:
+            ws.resize(rows=5000, cols=16)
         return ws
     except Exception as e:
         print(f"  Google Sheets 初始化失敗：{e}")
@@ -315,11 +342,11 @@ def init_gsheet_completed(gc, game_name):
         try:
             ws = sh.worksheet(sheet_name)
         except:
-            ws = sh.add_worksheet(title=sheet_name, rows=5000, cols=14)
+            ws = sh.add_worksheet(title=sheet_name, rows=5000, cols=16)
         if not ws.get_all_values() or ws.cell(1, 1).value != "成交發現日":
             ws.insert_row(COMPLETED_HEADERS, 1)
-        if ws.row_count < 5000 or ws.col_count < 14:
-            ws.resize(rows=5000, cols=14)
+        if ws.row_count < 5000 or ws.col_count < 16:
+            ws.resize(rows=5000, cols=16)
         return ws
     except Exception as e:
         print(f"  成交紀錄分頁初始化失敗：{e}")
@@ -355,6 +382,29 @@ def gsheet_batch_insert(ws, rows_to_add):
             time.sleep(10)
     return written_urls
 
+def gsheet_update_prices(ws, updates):
+    """更新已存在的商品價格區間"""
+    if not ws or not updates:
+        return
+    try:
+        urls = ws.col_values(14)  # 第 14 欄是網址
+        url_idx_map = {url: i+1 for i, url in enumerate(urls)}
+        
+        batch_data = []
+        for upd in updates:
+            row_idx = url_idx_map.get(upd["url"])
+            if row_idx:
+                batch_data.append({
+                    'range': f'O{row_idx}:P{row_idx}',
+                    'values': [[upd["min_price"], upd["max_price"]]]
+                })
+        
+        if batch_data:
+            ws.batch_update(batch_data)
+            print(f"  Google Sheets 追蹤更新：{len(batch_data)} 筆改價紀錄")
+    except Exception as e:
+        print(f"  Google Sheets 改價更新失敗：{e}")
+
 def update_gsheet(ws, new_items, thresholds, sellers):
     if not ws:
         return
@@ -383,7 +433,8 @@ def update_gsheet(ws, new_items, thresholds, sellers):
             rows_to_add.append([
                 now_str, r.get('post_time', ''), r['title'], r['price'],
                 r['gold_char'], r['gold_weap'], cp1_str, cp2_str, cpw_str,
-                profit_str, const_str, good_str, seller_str, r['url']
+                profit_str, const_str, good_str, seller_str, r['url'],
+                r['price'], r['price']
             ])
         if not rows_to_add:
             print("  Google Sheets：無新資料")
@@ -441,11 +492,15 @@ def update_gsheet_completed(ws, new_trades, sellers, seen_map, high_tier_chars):
                 r['gold_weap'],
                 const_str if const_str else "-",
                 high_tier_str,
+                high_tier_str,
                 cp1_str,
                 cp2_str,
                 cpw_str,
                 seller_str,
                 r['url'],
+                # 成交紀錄就照搬原本標價當作低高價
+                r['price'],
+                r['price']
             ])
             # ⚠️ 不在這裡 add(r['url'])，等 batch_insert 確認成功再標記
 
@@ -593,8 +648,8 @@ def fast_track_scan(GAMES):
                 continue
 
             # 標記為本次第一次見到
-            listing_seen_map[url] = now_str
-            new_seen[url] = now_str
+            listing_seen_map[url] = {"date": now_str, "min_price": price, "max_price": price}
+            new_seen[url] = listing_seen_map[url]
 
             # 快速計算 CP（只用角色關鍵字解析金角數，無法去詳情頁）
             gold_char = 0
@@ -1048,8 +1103,9 @@ def scrape_pages(main_page, base_url, max_pages, label="",
                  stop_at_seen=None, do_detail=False, detail_page=None,
                  char_weights=None, alias_map=None):
     results = []
+    price_updates = []
     seen_in_run = set()
-    stop_at_seen = set(stop_at_seen) if stop_at_seen else set()
+    stop_at_seen = stop_at_seen if stop_at_seen is not None else set()
 
     # 連續遇到已見過的筆數計數（避免全新頁面也停止）
     # 8591 completed list 不是嚴格時間排序，不能靠 hit_old 邏輯直接 break
@@ -1070,7 +1126,6 @@ def scrape_pages(main_page, base_url, max_pages, label="",
             print(f"    找到 {len(items)} 個")
 
             new_in_page = 0
-            seen_count_in_page = 0
             
             for item in items:
                 try:
@@ -1127,6 +1182,18 @@ def scrape_pages(main_page, base_url, max_pages, label="",
                     # 因為 8591 completed 列表排序不嚴格，舊交易可能夾在新交易中間
                     if detail_url in stop_at_seen:
                         seen_in_run.add(detail_url)  # 避免重複判斷
+                        # 檢查價格變化 (stop_at_seen 是 dict 的時候)
+                        if isinstance(stop_at_seen, dict):
+                            val = stop_at_seen[detail_url]
+                            if isinstance(val, dict):
+                                old_min = val.get("min_price", price)
+                                old_max = val.get("max_price", price)
+                                if price < old_min:
+                                    val["min_price"] = price
+                                    price_updates.append({"url": detail_url, "min_price": price, "max_price": old_max})
+                                elif price > old_max:
+                                    val["max_price"] = price
+                                    price_updates.append({"url": detail_url, "min_price": old_min, "max_price": price})
                         continue
 
                     seen_in_run.add(detail_url)
@@ -1160,7 +1227,7 @@ def scrape_pages(main_page, base_url, max_pages, label="",
 
             # 整頁都是舊的（且 stop_at_seen 非空，表示確實有在追蹤）
             # → 表示已到達已記錄的區域，後面幾乎不會有新資料，停止
-            if stop_at_seen and new_in_page == 0:
+            if stop_at_seen is not None and not isinstance(stop_at_seen, dict) and new_in_page == 0:
                 print(f"    整頁皆為已記錄，停止繼續翻頁。")
                 break
 
@@ -1168,7 +1235,7 @@ def scrape_pages(main_page, base_url, max_pages, label="",
             print(f"  頁面錯誤：{e}")
             break
         time.sleep(random.uniform(2, 3))
-    return results
+    return results, price_updates
 
 def format_item(r, cp_type="cp1", sellers=None):
     cp_val = r.get(cp_type, float('inf'))
@@ -1210,11 +1277,10 @@ def run_game(main_page, detail_page, game_key, g, gc, price_tracker):
     listing_seen_map = load_listing_seen(g["listing_seen_file"])
     sellers = load_sellers(g["seller_file"])
 
-    print(f"\n📊 [{name}] 抓取新成交紀錄...")
-    new_completed = scrape_pages(
+    print(f"\n🔍 [{name}] 抓歷史成交...")
+    new_completed, _ = scrape_pages(
         main_page, g["completed_url"], 100, "已完成",
-        stop_at_seen=seen_urls,
-        do_detail=False,  # 已完成交易 detail page 成交後無法訪問，改用 listing_seen_map 推算上架天數
+        stop_at_seen=seen_urls, do_detail=False, detail_page=None,
         char_weights=g["char_weights"], alias_map=g["alias_map"])
     print(f"  新增 {len(new_completed)} 筆")
 
@@ -1258,9 +1324,9 @@ def run_game(main_page, detail_page, game_key, g, gc, price_tracker):
     )
 
     print(f"\n🔍 [{name}] 抓現有賣場（{MAX_PAGES} 頁）...")
-    listings = scrape_pages(
+    listings, active_price_updates = scrape_pages(
         main_page, g["list_url"], MAX_PAGES, "賣場",
-        do_detail=True, detail_page=detail_page,
+        stop_at_seen=listing_seen_map, do_detail=True, detail_page=detail_page,
         char_weights=g["char_weights"], alias_map=g["alias_map"])
 
     for r in listings:
@@ -1275,7 +1341,11 @@ def run_game(main_page, detail_page, game_key, g, gc, price_tracker):
     
     for r in listings:
         if r['url'] not in listing_seen_map:
-            listing_seen_map[r['url']] = today_str
+            listing_seen_map[r['url']] = {
+                "date": today_str,
+                "min_price": r['price'],
+                "max_price": r['price']
+            }
             
         # 更新賣家索引：僅全變早（賣家首次上架的日期）
         sid = r.get('seller_id', '')
@@ -1301,6 +1371,8 @@ def run_game(main_page, detail_page, game_key, g, gc, price_tracker):
     try:
         ws_google = init_gsheet(gc, name)
         update_gsheet(ws_google, valid, thresholds, sellers)
+        if active_price_updates:
+            gsheet_update_prices(ws_google, active_price_updates)
     except Exception as e:
         print(f"  Google Sheets 失敗：{e}")
 
