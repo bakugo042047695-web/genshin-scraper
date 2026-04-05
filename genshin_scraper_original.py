@@ -544,6 +544,29 @@ def update_gsheet_completed(ws, new_trades, sellers, seen_map, high_tier_chars):
             high_tier_found = [char for char in high_tier_chars if char in title]
             high_tier_str = ", ".join(high_tier_found) if high_tier_found else "-"
 
+            # --- 秒殺庫紀錄 ---
+            if days in ["0", "1"] and is_valid_market_data(title, r['price']):
+                fast_sale_doc = {
+                    "date": now_str,
+                    "title": title,
+                    "price": r['price'],
+                    "gold_char": r['gold_char'],
+                    "high_tier": high_tier_str,
+                    "url": r['url']
+                }
+                try:
+                    fs_path = os.path.join(os.path.dirname(__file__), "fast_sales.json")
+                    fs_list = []
+                    if os.path.exists(fs_path):
+                        with open(fs_path, "r", encoding="utf-8") as f:
+                            fs_list = json.load(f)
+                    fs_list.append(fast_sale_doc)
+                    # 保留最近 1000 筆秒殺
+                    with open(fs_path, "w", encoding="utf-8") as f:
+                        json.dump(fs_list[-1000:], f, ensure_ascii=False, indent=2)
+                except Exception as e:
+                    print(f"寫入秒殺庫失敗: {e}")
+
             rows_to_add.append([
                 now_str,
                 post_time if post_time else "-",
@@ -984,8 +1007,16 @@ def load_stats(filepath):
     return {"count": 0, "cp1_sum": 0, "cp2_sum": 0, "cpw_sum": 0,
             "price_sum": 0, "gold_char_sum": 0, "records": [], "last_updated": ""}
 
+def is_valid_market_data(title, price):
+    if price <= 200:
+        return False
+    trash = ["專屬", "定金", "預約", "代儲", "代出", "此單不", "勿下", "提問"]
+    if any(t in title for t in trash):
+        return False
+    return True
+
 def update_stats(stats, new_trades, filepath):
-    valid = [r for r in new_trades if r['cp1'] != float('inf')]
+    valid = [r for r in new_trades if r['cp1'] != float('inf') and is_valid_market_data(r['title'], r['price'])]
     if "records" not in stats:
         stats["records"] = []
     for r in valid:
