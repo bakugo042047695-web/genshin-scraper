@@ -6,6 +6,11 @@ from openpyxl.styles import PatternFill, Font, Alignment
 from openpyxl.utils import get_column_letter
 import gspread
 from google.oauth2.service_account import Credentials
+
+try:
+    from generate_chart import generate_trend_chart
+except ImportError:
+    generate_trend_chart = None
 try:
     import pymongo
     HAS_PYMONGO = True
@@ -754,18 +759,48 @@ def check_price_drop(tracker, listings, discord_url, emoji, name):
     dropped = []
     for r in listings:
         url, price = r['url'], r['price']
+        
         if url in tracker:
-            old_price = tracker[url]['price']
+            old_price = tracker[url].get('price', price)
+            original_price = tracker[url].get('original_price', old_price)
+            drop_count = tracker[url].get('drop_count', 0)
+            
             if old_price > price:
+                drop_count += 1
                 drop_pct = (old_price - price) / old_price
-                if drop_pct >= PRICE_DROP_THRESHOLD:
-                    dropped.append({**r, 'old_price': old_price, 'drop_pct': drop_pct})
-        tracker[url] = {'price': price, 'updated': datetime.now().strftime("%Y-%m-%d %H:%M")}
+                total_drop_pct = (original_price - price) / original_price if original_price else 0
+                
+                is_panic = total_drop_pct >= 0.30
+                is_freq = drop_count >= 2
+                
+                if drop_pct >= PRICE_DROP_THRESHOLD or is_panic or is_freq:
+                    dropped.append({
+                        **r, 'old_price': old_price, 'original_price': original_price,
+                        'drop_pct': drop_pct, 'total_drop_pct': total_drop_pct,
+                        'drop_count': drop_count, 'is_panic': is_panic, 'is_freq': is_freq
+                    })
+        else:
+            original_price = price
+            drop_count = 0
+            
+        tracker[url] = {
+            'price': price, 
+            'original_price': original_price,
+            'drop_count': drop_count,
+            'updated': datetime.now().strftime("%Y-%m-%d %H:%M")
+        }
+        
     if dropped:
         msg = f"{emoji} **🔥 {name} 降價警告！（共{len(dropped)}個）**\n{'─'*38}\n"
         for r in dropped:
+            tags = []
+            if r.get('is_panic'): tags.append("🚨 斷頭跳水")
+            if r.get('is_freq'): tags.append(f"⚠️ 連降{r['drop_count']}次")
+            tag_str = f"【{' '.join(tags)}】" if tags else ""
+            
             line = (
-                f"**降價 {r['drop_pct']*100:.0f}%！** ~~${r['old_price']:,}~~ → **${r['price']:,}**\n"
+                f"{tag_str} **這次下殺 {r['drop_pct']*100:.0f}%！** (總跌 {r['total_drop_pct']*100:.0f}%)\n"
+                f"~~${r['original_price']:,}~~ → ~~${r['old_price']:,}~~ → **${r['price']:,}**\n"
                 f"{r['title']}\n純角{r['cp1']:.1f} 含武{r['cp2']:.1f}\n{r['url']}\n\n"
             )
             if len(msg) + len(line) > 1900:
@@ -915,10 +950,14 @@ def is_recent(post_time_str, days=RECENT_DAYS):
         pass
     return False
 
-def send_discord(webhook_url, content):
-    webhook_url = webhook_url.strip().rstrip('ㄛ')
+def send_discord(webhook_url, content, image_path=None):
+    webhook_url = webhook_url.strip().rstrip('ㄛ').rstrip('/')
     try:
-        r = requests.post(webhook_url, json={"content": content})
+        if image_path and os.path.exists(image_path):
+            with open(image_path, "rb") as f:
+                r = requests.post(webhook_url, data={"content": content}, files={"file": f})
+        else:
+            r = requests.post(webhook_url, json={"content": content})
         print(f"  Discord：{r.status_code}")
         time.sleep(0.8)
     except Exception as e:
@@ -1562,13 +1601,34 @@ def run_scrape():
     save_price_tracker(price_tracker)
     print(f"\n✅ 全部完成！{datetime.now().strftime('%H:%M:%S')}")
 
+def run_trend_charts(GAMES):
+    print("\n📊 產製並發送市場趨勢週報...")
+    for game_key, g in GAMES.items():
+        stats_file = g["stats_file"]
+        stats = load_stats(stats_file)
+        if generate_trend_chart:
+            chart_path = f"trend_{game_key}.png"
+            try:
+                out = generate_trend_chart(game_key, stats, output_path=chart_path)
+                if out and g["discord"]:
+                    msg = f"📈 **{g['emoji']} {game_key} 市場動盪趨勢週報**\n為您呈上近30天的日均價與純角CP走勢分析！"
+                    send_discord(g["discord"], msg, image_path=out)
+            except Exception as e:
+                print(f"  ❌ {game_key} 趨勢圖生成失敗：{e}")
+
 if __name__ == "__main__":
     print("⏰ 排程啟動，每30分鐘執行一次（立即先跑一次）")
     print("⚡ 快速監控：每2分鐘掃一次首頁新上架（不用 Playwright，超輕量）")
     GAMES = build_games_config()
+    
+    # 首次啟動：為展示新功能，強制發送一次趨勢週報
+    run_trend_charts(GAMES)
+    
     run_scrape()
     schedule.every(30).minutes.do(run_scrape)
     schedule.every(2).minutes.do(lambda: fast_track_scan(GAMES))
+    schedule.every().sunday.at("20:00").do(lambda: run_trend_charts(GAMES))
+    
     while True:
         schedule.run_pending()
         time.sleep(30)  # 每 30 秒檢查一次排程（支援 2 分鐘精確度）
