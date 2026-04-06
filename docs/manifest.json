@@ -1,0 +1,18 @@
+{
+  "name": "8591 看盤雷達",
+  "short_name": "看盤雷達",
+  "description": "8591 帳號市場快速查詢工具",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0F0F1A",
+  "theme_color": "#6C63FF",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f3af.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
