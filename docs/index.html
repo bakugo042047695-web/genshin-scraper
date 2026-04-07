@@ -76,14 +76,15 @@
   }
   .filter-row { display: flex; gap: 8px; align-items: center; }
   .filter-row label { font-size: 12px; color: var(--muted); white-space: nowrap; }
-  input {
+  input, select {
     background: var(--card); border: 1.5px solid var(--border);
     color: var(--text); border-radius: 10px;
     padding: 8px 12px; font-size: 14px; width: 100%;
     outline: none; transition: border-color 0.2s;
   }
-  input:focus { border-color: var(--accent); }
+  input:focus, select:focus { border-color: var(--accent); }
   input::placeholder { color: var(--muted); }
+  input[type="date"] { color-scheme: dark; }
   .price-row { display: flex; gap: 6px; align-items: center; flex: 1; }
   .sep { color: var(--muted); font-size: 14px; flex-shrink: 0; }
 
@@ -241,6 +242,24 @@
     <label style="white-space:nowrap; margin-left:8px;">CP≤</label>
     <input id="maxCp" type="number" placeholder="不限" inputmode="decimal" style="width:80px; flex-shrink:0;">
   </div>
+  <div class="filter-row">
+    <label>日期</label>
+    <select id="dateFilter" onchange="toggleCustomDate()">
+      <option value="all">所有時間</option>
+      <option value="1w">一週內</option>
+      <option value="2w">兩週內</option>
+      <option value="1m">一個月內</option>
+      <option value="custom">自訂日期範圍...</option>
+    </select>
+  </div>
+  <div class="filter-row" id="customDateRow" style="display: none;">
+    <label>範圍</label>
+    <div class="price-row">
+      <input id="dateFrom" type="date">
+      <span class="sep">~</span>
+      <input id="dateTo" type="date">
+    </div>
+  </div>
   <button class="search-btn" id="searchBtn" onclick="doSearch()">📡 拉取 &amp; 搜尋</button>
 </div>
 
@@ -333,12 +352,22 @@ async function doSearch() {
   }
 }
 
+function toggleCustomDate() {
+  const v = document.getElementById('dateFilter').value;
+  document.getElementById('customDateRow').style.display = v === 'custom' ? 'flex' : 'none';
+  if (v !== 'custom') applyFilter();
+}
+
 function applyFilter() {
   const kw      = document.getElementById('keyword').value.trim().toLowerCase();
   const pMin    = parseFloat(document.getElementById('minPrice').value) || 0;
   const pMax    = parseFloat(document.getElementById('maxPrice').value) || 999999;
   const cpMax   = parseFloat(document.getElementById('maxCp').value)   || 999;
+  const df      = document.getElementById('dateFilter').value;
+  const dFrom   = document.getElementById('dateFrom').value;
+  const dTo     = document.getElementById('dateTo').value;
   const c       = COLS[currentType];
+  const now     = new Date();
 
   const matched = [];
   for (const row of rawRows) {
@@ -353,6 +382,24 @@ function applyFilter() {
     if (price < pMin || price > pMax) continue;
     if (kw && !title.toLowerCase().includes(kw)) continue;
     if (cpMax < 999 && cp1 > cpMax) continue;
+
+    // Date Filter Logic
+    let dateStr = g(c.date).slice(0,10);
+    // Remove >= or * from history pseudo-dates
+    dateStr = dateStr.replace(/[^\d-]/g, '');
+    
+    if (df !== 'all' && dateStr) {
+      const rowDate = new Date(dateStr);
+      if (!isNaN(rowDate)) {
+        if (df === '1w' && (now - rowDate) > 7*86400000) continue;
+        if (df === '2w' && (now - rowDate) > 14*86400000) continue;
+        if (df === '1m' && (now - rowDate) > 30*86400000) continue;
+        if (df === 'custom') {
+          if (dFrom && rowDate < new Date(dFrom)) continue;
+          if (dTo && rowDate > new Date(dTo)) continue;
+        }
+      }
+    }
 
     matched.push({
       title, price, cp1,
@@ -424,7 +471,7 @@ if ('serviceWorker' in navigator) {
 
 // Live filter on typing (debounced)
 let debTimer;
-['keyword','minPrice','maxPrice','maxCp'].forEach(id => {
+['keyword','minPrice','maxPrice','maxCp','dateFilter','dateFrom','dateTo'].forEach(id => {
   document.getElementById(id).addEventListener('input', () => {
     if (!rawRows.length) return;
     clearTimeout(debTimer);
