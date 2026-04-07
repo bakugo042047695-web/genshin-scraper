@@ -8,6 +8,7 @@ games = {
     "原神": {"listing_file": "gs_listing_seen.json", "sheet": "原神-成交紀錄"},
     "鳴潮": {"listing_file": "ww_listing_seen.json", "sheet": "鳴潮-成交紀錄"},
     "崩鐵": {"listing_file": "sr_listing_seen.json", "sheet": "崩鐵-成交紀錄"},
+    "絕區零": {"listing_file": "zzz_listing_seen.json", "sheet": "絕區零-成交紀錄"},
 }
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

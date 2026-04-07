@@ -35,6 +35,7 @@ TIER_LIST_FILES = {
     "原神": os.path.join(BASE_DIR, "genshin_tier_list.json"),
     "鳴潮": os.path.join(BASE_DIR, "wutheringwaves_tier_list.json"),
     "崩鐵": os.path.join(BASE_DIR, "hsr_tier_list.json"),
+    "絕區零": os.path.join(BASE_DIR, "zzz_tier_list.json"),
 }
 
 TIER_WEIGHTS = {
@@ -101,6 +102,7 @@ def build_games_config():
         },
         "鳴潮": {"卡卡": "卡卡羅"},
         "崩鐵": {"花火": "花火", "阮梅": "阮•梅"},
+        "絕區零": {"鯊魚": "艾蓮", "鯊魚妹": "艾蓮", "老鼠": "簡", "月城柳": "柳", "星見雅": "雅"},
     }
 
     games = {
@@ -142,6 +144,19 @@ def build_games_config():
             "history_file": os.path.join(BASE_DIR, "sr_completed_history.json"),
             "listing_seen_file": os.path.join(BASE_DIR, "sr_listing_seen.json"),
             "seller_file": os.path.join(BASE_DIR, "sr_sellers.json"),
+        },
+        "絕區零": {
+            "emoji": "📼",
+            "list_url": "YOUR_8591_URL_HERE",
+            "completed_url": "YOUR_8591_COMPLETED_URL_HERE",
+            "discord": "YOUR_DISCORD_WEBHOOK_HERE",
+            "discord_bargain": "YOUR_DISCORD_BARGAIN_WEBHOOK_HERE",
+            "discord_maxconst": "YOUR_DISCORD_MAXCONST_WEBHOOK_HERE",
+            "excel": os.path.join(BASE_DIR, "zzz_listings.xlsx"),
+            "stats_file": os.path.join(BASE_DIR, "zzz_market_stats.json"),
+            "history_file": os.path.join(BASE_DIR, "zzz_completed_history.json"),
+            "listing_seen_file": os.path.join(BASE_DIR, "zzz_listing_seen.json"),
+            "seller_file": os.path.join(BASE_DIR, "zzz_sellers.json"),
         },
     }
 

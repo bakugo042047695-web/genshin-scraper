@@ -18,6 +18,8 @@ GAME_SHEETS = {
     "原神 (成交)":  ("原神-成交紀錄", "completed"),
     "鳴潮 (在架)":  ("鳴潮",          "in_progress"),
     "鳴潮 (成交)":  ("鳴潮-成交紀錄", "completed"),
+    "絕區零 (在架)":  ("絕區零",          "in_progress"),
+    "絕區零 (成交)":  ("絕區零-成交紀錄", "completed"),
 }
 
 # 欄位索引
@@ -151,7 +153,7 @@ async def search_cmd(
     keyword="角色名稱或配置關鍵字（必填，例如：流螢、6+1黃泉）"
 )
 @app_commands.choices(game=[
-    app_commands.Choice(name=k, value=k) for k in ["崩鐵", "原神", "鳴潮"]
+    app_commands.Choice(name=k, value=k) for k in ["崩鐵", "原神", "鳴潮", "絕區零"]
 ])
 async def trend_cmd(
     interaction: discord.Interaction,

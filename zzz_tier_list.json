@@ -1,0 +1,27 @@
+{
+    "highValueFor8591": ["雅", "柳", "簡", "朱鳶", "艾蓮", "凱撒", "柏妮思", "萊特", "青衣"],
+    "tierSS": [
+        {"name": "雅", "consensus": 2},
+        {"name": "柳", "consensus": 2},
+        {"name": "簡", "consensus": 2},
+        {"name": "凱撒", "consensus": 2}
+    ],
+    "tierS": [
+        {"name": "艾蓮", "consensus": 1},
+        {"name": "朱鳶", "consensus": 1},
+        {"name": "柏妮思", "consensus": 1},
+        {"name": "萊特", "consensus": 1},
+        {"name": "青衣", "consensus": 1}
+    ],
+    "tierA": [
+        {"name": "狼哥", "consensus": 1},
+        {"name": "11號", "consensus": 1},
+        {"name": "格莉絲", "consensus": 1},
+        {"name": "珂蕾妲", "consensus": 1},
+        {"name": "麗娜", "consensus": 1},
+        {"name": "貓又", "consensus": 1}
+    ],
+    "tierB": [],
+    "tierC": [],
+    "tierD": []
+}
