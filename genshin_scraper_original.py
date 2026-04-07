@@ -1688,7 +1688,7 @@ def run_scrape():
         detail_page = browser.new_page(
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
 
-        for game_key in ["原神", "鳴潮", "崩鐵"]:
+        for game_key in GAMES.keys():
             try:
                 run_game(main_page, detail_page, game_key, GAMES[game_key], gc, price_tracker)
             except Exception as e:
