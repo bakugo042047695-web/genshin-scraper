@@ -872,53 +872,81 @@ def parse_title_smart(title, char_weights, alias_map):
 
     m_char = re.search(r'(\d+)金角', title)
     m_weap = re.search(r'(\d+)金(?:武|專)', title)
-    if m_char:
-        gold_char = int(m_char.group(1))
-    if m_weap:
-        gold_weap = int(m_weap.group(1))
+    if m_char: gold_char = int(m_char.group(1))
+    if m_weap: gold_weap = int(m_weap.group(1))
 
-    plus_patterns = re.findall(r'(\d+)\+(\d+)([\u4e00-\u9fff]{1,4})', title)
-    for n1, n2, char in plus_patterns:
-        char = resolve_alias(char, alias_map)
-        n1, n2 = int(n1), int(n2)
-        if gold_char == 0:
-            gold_char += n1
-        if gold_weap == 0:
-            gold_weap += n2
-        weight = char_weights.get(char, 1)
-        weighted_score += n1 * weight * 10 + n2 * weight * 5
-        if n1 >= 6 and char not in max_const_chars:
-            max_const_chars.append(char)
+    all_names_map = {}
+    for char in char_weights.keys():
+        all_names_map[char] = char
+    for alias, real_name in alias_map.items():
+        all_names_map[alias] = real_name
 
-    const_patterns = re.findall(r'(\d+)命([\u4e00-\u9fff]{1,4})', title)
-    const_patterns += [(b, a) for a, b in re.findall(r'([\u4e00-\u9fff]{1,4})\s*(\d+)命', title)]
-    for n, char in const_patterns:
-        char = resolve_alias(char, alias_map)
-        n = int(n)
-        weight = char_weights.get(char, 1)
-        weighted_score += (n + 1) * weight * 10
-        if n >= 6 and char not in max_const_chars:
-            max_const_chars.append(char)
+    char_const = {}
+    char_refine = {}
 
-    for pattern in [
-        r'(?:滿命|C6|E6)\s*([\u4e00-\u9fff]{2,4})',
-        r'([\u4e00-\u9fff]{2,4})\s*(?:滿命|C6|E6)',
-        r'([\u4e00-\u9fff]{2,4})\s*6命',
-        r'6命\s*([\u4e00-\u9fff]{2,4})',
-    ]:
-        for c in re.findall(pattern, title):
-            c = resolve_alias(c, alias_map)
-            if len(c) >= 2 and c not in max_const_chars:
-                max_const_chars.append(c)
+    def add_char_const(word, c, r=None):
+        for name, real_name in all_names_map.items():
+            if name in word:
+                if c is not None:
+                    char_const[real_name] = max(char_const.get(real_name, 0), c)
+                if r is not None:
+                    char_refine[real_name] = max(char_refine.get(real_name, 0), r)
 
-    if not plus_patterns and not const_patterns:
-        for char, weight in char_weights.items():
-            aliases = [k for k, v in alias_map.items() if v == char]
-            if char in title or any(a in title for a in aliases):
-                weighted_score += weight * 10
+    temp_title = title
+
+    # 1. 滿命/C6/E6 Suffix
+    for match in re.finditer(r'([\u4e00-\u9fffA-Za-z]+)\s*(?:滿命|C6|E6)', temp_title):
+        add_char_const(match.group(1), 6)
+        temp_title = temp_title.replace(match.group(0), ' ')
+
+    # 2. 滿命/C6/E6 Prefix
+    for match in re.finditer(r'(?:滿命|C6|E6)\s*([\u4e00-\u9fffA-Za-z]+)', temp_title):
+        add_char_const(match.group(1), 6)
+        temp_title = temp_title.replace(match.group(0), ' ')
+
+    # 3. N命 Suffix
+    for match in re.finditer(r'([\u4e00-\u9fffA-Za-z]+)\s*([0-6])命', temp_title):
+        add_char_const(match.group(1), int(match.group(2)))
+        temp_title = temp_title.replace(match.group(0), ' ')
+
+    # 4. N命 Prefix
+    for match in re.finditer(r'([0-6])命\s*([\u4e00-\u9fffA-Za-z]+)', temp_title):
+        add_char_const(match.group(2), int(match.group(1)))
+        temp_title = temp_title.replace(match.group(0), ' ')
+
+    # 5. N+M chars
+    for match in re.finditer(r'(\d)\+(\d)\s*([\u4e00-\u9fffA-Za-z]+)', temp_title):
+        add_char_const(match.group(3), int(match.group(1)), int(match.group(2)))
+
+    # 6. NM chars (like 61黃泉, 21流螢)
+    for match in re.finditer(r'(?:^|[^0-9])([0-6])([0-5])\s*([\u4e00-\u9fffA-Za-z]{2,})', temp_title):
+        add_char_const(match.group(3), int(match.group(1)), int(match.group(2)))
+
+    # 7. Find any remaining chars in whole title
+    for name, real_name in all_names_map.items():
+        if name in title:
+            if real_name not in char_const:
+                char_const[real_name] = 0
+            if real_name not in char_refine:
+                char_refine[real_name] = 0
+
+    # Score calculation
+    for real_name, c in char_const.items():
+        r = char_refine.get(real_name, 0)
+        weight = char_weights.get(real_name, 1)
+        
+        weighted_score += (c + 1) * weight * 10
+        weighted_score += r * weight * 5
+        
+        if c >= 6:
+            max_const_chars.append(real_name)
+
+    if gold_char == 0:
+        gold_char = sum(char_const.values()) + len(char_const)
+    if gold_weap == 0:
+        gold_weap = sum(char_refine.values())
 
     return gold_char, gold_weap, weighted_score, max_const_chars
-
 def parse_detail_for_gold(page, url, title):
     try:
         page.goto(url, timeout=30000)
@@ -1016,7 +1044,7 @@ def load_stats(filepath):
 def is_valid_market_data(title, price):
     if price <= 200:
         return False
-    trash = ["專屬", "定金", "預約", "代儲", "代出", "此單不", "勿下", "提問"]
+    trash = ["專屬", "定金", "預約", "代儲"]
     if any(t in title for t in trash):
         return False
     return True
