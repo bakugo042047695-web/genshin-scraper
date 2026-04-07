@@ -1340,6 +1340,7 @@ def scrape_pages(main_page, base_url, max_pages, label="",
                         continue
                     # ★ 關鍵修正：遇到已記錄的 URL 只跳過這一筆，不 break 整個迴圈
                     # 因為 8591 completed 列表排序不嚴格，舊交易可能夾在新交易中間
+                    is_price_drop = False
                     if detail_url in stop_at_seen:
                         seen_in_run.add(detail_url)  # 避免重複判斷
                         # 檢查價格變化 (stop_at_seen 是 dict 的時候)
@@ -1353,13 +1354,19 @@ def scrape_pages(main_page, base_url, max_pages, label="",
                                     val["min_price"] = price
                                     effective_max = old_max if old_max > 0 else price
                                     price_updates.append({"url": detail_url, "min_price": price, "max_price": effective_max})
+                                    if old_min > 0:
+                                        is_price_drop = True
                                 elif old_max == 0 or price > old_max:
                                     val["max_price"] = price
                                     price_updates.append({"url": detail_url, "min_price": old_min, "max_price": price})
-                        continue
+                        
+                        if not is_price_drop:
+                            continue
 
                     seen_in_run.add(detail_url)
-                    new_in_page += 1
+                    if not is_price_drop:
+                        new_in_page += 1
+                        
                     gold_char, gold_weap, weighted, max_const = parse_title_smart(
                         title, char_weights, alias_map)
 
