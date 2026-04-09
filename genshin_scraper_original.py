@@ -252,13 +252,15 @@ def calc_days_on_market(post_time_str, seen_map, url, seller_id="", title="", is
 
     # 方法A：用詳情頁的上架時間
     if post_time_str and post_time_str != "-":
-        for fmt in ["%Y-%m-%d", "%Y/%m/%d"]:
+        m = re.search(r'(\d{4}[-/]\d{2}[-/]\d{2})', post_time_str)
+        if m:
+            clean_date = m.group(1).replace("/", "-")
             try:
-                d = datetime.strptime(post_time_str.strip(), fmt)
+                d = datetime.strptime(clean_date, "%Y-%m-%d")
                 days = (today - d).days
                 return str(days)
             except:
-                continue
+                pass
 
     # 方法B：用 listing_seen 首次發現時間（精確 URL）
     first_seen = seen_map.get(url, "")
