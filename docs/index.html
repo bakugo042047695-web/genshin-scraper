@@ -45,7 +45,7 @@
   }
   .header-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
   .logo { font-size: 24px; }
-  .title { font-size: 18px; font-weight: 700; background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .title { font-size: 18px; font-weight: 700; background: linear-gradient(90deg, var(--accent), var(--accent2)); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
   .subtitle { font-size: 12px; color: var(--muted); }
 
   /* Game tabs */
@@ -167,6 +167,7 @@
     font-size: 14px; line-height: 1.5;
     color: var(--text);
     display: -webkit-box;
+    line-clamp: 2;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
@@ -237,7 +238,10 @@
     <span class="logo">🎯</span>
     <div>
       <div class="title">8591 看盤雷達</div>
-      <div class="subtitle">即時查詢 · Google Sheets 直連</div>
+      <div class="subtitle" style="display:flex; align-items:center; gap:8px;">
+        即時查詢 · Google Sheets 直連
+        <button onclick="copyGeminiPrompt(this)" style="background:linear-gradient(90deg, var(--accent), var(--accent2)); border:none; border-radius:12px; color:#fff; font-size:10px; padding:3px 8px; font-weight:bold; cursor:pointer;" title="複製最新估價指令至剪貼簿">🤖 呼喚 Gemini估價</button>
+      </div>
     </div>
   </div>
   <div class="game-tabs" id="gameTabs">
@@ -566,6 +570,55 @@ function escHtml(s) {
 // PWA service worker
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+
+// Gemini Prompt
+function copyGeminiPrompt(btn) {
+  const promptText = `# 歡迎進入：遊戲帳號市場估價 AI 系統指導手冊
+
+## 🎯 你的角色設定
+你是一位深諳 8591 市場行情的「遊戲帳號估價大師」與「談判專家」。你的任務是精準計算出特定帳號的「理論市場價值」，並指導使用者如何對賣家進行合理的「殺價交涉」。
+
+## 📊 核心估價演算法 (CPW 演算法)
+我們平台採用「加權積分制」來計算帳號價值。計算公式如下：
+1. **角色基礎分**：每一金（0命）算作 1 隻。滿命（6命）代表單一角色擁有 7 隻。
+2. **武器基礎分**：每一把專武算作 1 把。滿精煉（精5）代表 5 把。
+3. **加權系數 (Weight)**：
+   - **T0/SS級角色 (Meta頂點)**：權重為 2.5
+      - *原神名單*：火神、僕人、水龍王、絲柯克、奈芙爾 等最新幻神。
+      - *崩鐵名單*：黃泉、流螢、星期日 等。
+      - *絕區零名單*：白厄、遐蝶(蝶)、大黑塔 等。
+   - **T1/S級角色**：權重為 1.5
+   - **常駐/過氣老角色**：權重為 1.0 (或更低)
+4. **得分計算公式**：
+   - 角色總得分 = (金數) × 權重 × 10
+   - 專武總得分 = (精煉數) × 權重 × 5
+5. **現實台幣轉換率 (TWD)**：
+   目前的市場行情約為 **「1 點加權得分 = 10 ~ 12 元新台幣」**。
+
+## 🧮 估價示範與殺價指導
+**情境**：使用者詢問「6+5火神」加「6+1奈芙爾」
+1. **火神 (SS級, 權重2.5)**：角色得分 = (6+1) × 2.5 × 10 = 175 分。武器得分 = 5 × 2.5 × 5 = 62.5 分。總分 = 237.5 分。
+2. **奈芙爾 (SS級, 權重2.5)**：角色得分 = (6+1) × 2.5 × 10 = 175 分。武器得分 = 1 × 2.5 × 5 = 12.5 分。總分 = 187.5 分。
+3. **總得分與價格**：總計 425 分。
+   - 合理均價 (乘 12)：約 5,100 TWD
+   - 殺價底線 (乘 8)：約 3,400 TWD
+
+## 🗨️ 你的輸出規範
+1. **【帳號價值拆解】**：列出得分計算過程。
+2. **【建議出價範圍】**：給出「正常購買價」與「極限殺價底線」。
+3. **【交涉談判話術】**：提供一段能夠直接複製給賣家的議價對話。請保持專業且具說服力。`;
+
+  navigator.clipboard.writeText(promptText).then(() => {
+    const oldHtml = btn.innerHTML;
+    const oldBg = btn.style.background;
+    btn.innerHTML = '✅ 已複製指令！';
+    btn.style.background = '#00E676';
+    setTimeout(() => {
+      btn.innerHTML = oldHtml;
+      btn.style.background = oldBg;
+    }, 2000);
+  }).catch(() => alert('複製失敗，請手動複製'));
 }
 
 // Live filter on typing (debounced)
