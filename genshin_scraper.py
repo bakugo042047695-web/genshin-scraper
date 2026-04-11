@@ -547,27 +547,38 @@ def save_price_tracker(tracker):
 def check_price_drop(tracker, listings, discord_url, emoji, name):
  dropped = []
  for r in listings:
- url, price = r['url'], r['price']
- if url in tracker:
- old_price = tracker[url]['price']
- if old_price > price:
- drop_pct = (old_price - price) / old_price
- if drop_pct >= PRICE_DROP_THRESHOLD:
- dropped.append({**r, 'old_price': old_price, 'drop_pct': drop_pct})
- tracker[url] = {'price': price, 'updated': datetime.now().strftime("%Y-%m-%d %H:%M")}
+  url, price = r['url'], r['price']
+  update_tracker = True
+  if url in tracker:
+   old_price = tracker[url]['price']
+   if old_price > price:
+    drop_pct = (old_price - price) / old_price
+    if drop_pct >= PRICE_DROP_THRESHOLD:
+     dropped.append({**r, 'old_price': old_price, 'drop_pct': drop_pct})
+     update_tracker = True
+    else:
+     update_tracker = False
+   elif price > old_price:
+    update_tracker = True
+   else:
+    update_tracker = False
+  else:
+   update_tracker = True
+  if update_tracker:
+   tracker[url] = {'price': price, 'updated': datetime.now().strftime("%Y-%m-%d %H:%M")}
  if dropped:
- msg = f"{emoji} **🔥 {name} 降價警告！（共{len(dropped)}個）**\n{'─'*38}\n"
- for r in dropped:
- line = (
- f"**降價 {r['drop_pct']*100:.0f}%！** ~~${r['old_price']:,}~~ → **${r['price']:,}**\n"
- f"{r['title']}\n純角{r['cp1']:.1f} 含武{r['cp2']:.1f}\n{r['url']}\n\n"
- )
- if len(msg) + len(line) > 1900:
- send_discord(discord_url, msg)
- msg = f"{emoji} **🔥 降價警告（續）**\n"
- msg += line
- if msg.strip():
- send_discord(discord_url, msg)
+  msg = f"{emoji} **🔥 {name} 降價警告！（共{len(dropped)}個）**\n{'─'*38}\n"
+  for r in dropped:
+   line = (
+    f"**降價 {r['drop_pct']*100:.0f}%！** ~~${r['old_price']:,}~~ → **${r['price']:,}**\n"
+    f"{r['title']}\n純角{r['cp1']:.1f} 含武{r['cp2']:.1f}\n{r['url']}\n\n"
+   )
+   if len(msg) + len(line) > 1900:
+    send_discord(discord_url, msg)
+    msg = f"{emoji} **🔥 降價警告（續）**\n"
+   msg += line
+  if msg.strip():
+   send_discord(discord_url, msg)
  return tracker
 
 # ===================== 獲利預估 =====================
