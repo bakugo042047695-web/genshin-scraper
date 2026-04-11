@@ -23,15 +23,7 @@ except Exception:
     pass
 
 
-DISCORD_HOOK = ""
-try:
-    with open(scraper_path, "r", encoding="utf-8") as f:
-        content = f.read()
-        m = re.search(r'DISCORD_PRICE_DROP\s*=\s*["']([^"']+)["']', content)
-        if m:
-            DISCORD_HOOK = m.group(1)
-except: pass
-
+DISCORD_HOOK = "https://discord.com/api/webhooks/1492395080659505354/7vzP6so0A0FbvPw9bLM5K1s7oCLxHIIk3M2n0MxYJzUt4Ns_8xrG3TDMXD_wjgSOfRGA"
 def send_discord_webhook(msg):
     if not DISCORD_HOOK: return
     try:
