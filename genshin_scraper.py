@@ -131,6 +131,19 @@ def build_games_config():
  "listing_seen_file": "sr_listing_seen.json",
  "seller_file": "global_sellers.json",
  },
+ "絕區零": {
+ "emoji": "📼",
+ "list_url": "https://www.8591.com.tw/v3/mall/list/49016?searchGame=49016&searchServer=57343&searchType=2&accountTag=3&priceStart=100&priceEnd=200000&post_time_sort=1",
+ "completed_url": "https://www.8591.com.tw/v3/mall/list/49016?searchGame=49016&searchServer=57343&searchType=2&accountTag=3&priceStart=100&priceEnd=200000&completed=1&post_time_sort=1",
+ "discord": "https://discord.com/api/webhooks/1491093750057795838/WoxqQbxWapT6NCdYannyMY-JYEvtojfwoHz2HO_1CyymsXOnVvUuE9tNeLjvcZriDPTH",
+ "discord_bargain": "https://discord.com/api/webhooks/1491093789975122010/y73z2n2-4NA4Zsshg9W9Wsvz11ko-gxOBpWBT_u_YWdguj-HW28-aMhhU3b6Z7fsz72t",
+ "discord_maxconst": "https://discord.com/api/webhooks/1491094260274167828/Oe1rX1zf9IDdN4a_gTl2eHmxHSnSS0gjIlZ2qWmof4vPA7eHGckHpsQW7t7umo0meeLp",
+ "excel": "C:\\Users\\toge\\zzz_listings.xlsx",
+ "stats_file": "zzz_market_stats.json",
+ "history_file": "zzz_completed_history.json",
+ "listing_seen_file": "zzz_listing_seen.json",
+ "seller_file": "global_sellers.json",
+ },
  }
 
  for game_name, g in games.items():
