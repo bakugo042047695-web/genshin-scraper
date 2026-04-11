@@ -103,7 +103,7 @@ def build_games_config():
  "stats_file": "gs_market_stats.json",
  "history_file": "gs_completed_history.json",
  "listing_seen_file": "gs_listing_seen.json",
- "seller_file": "gs_sellers.json",
+ "seller_file": "global_sellers.json",
  },
  "鳴潮": {
  "emoji": "🌊",
@@ -116,7 +116,7 @@ def build_games_config():
  "stats_file": "ww_market_stats.json",
  "history_file": "ww_completed_history.json",
  "listing_seen_file": "ww_listing_seen.json",
- "seller_file": "ww_sellers.json",
+ "seller_file": "global_sellers.json",
  },
  "崩鐵": {
  "emoji": "🚂",
@@ -129,7 +129,7 @@ def build_games_config():
  "stats_file": "sr_market_stats.json",
  "history_file": "sr_completed_history.json",
  "listing_seen_file": "sr_listing_seen.json",
- "seller_file": "sr_sellers.json",
+ "seller_file": "global_sellers.json",
  },
  }
 
