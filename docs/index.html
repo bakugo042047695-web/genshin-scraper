@@ -230,6 +230,110 @@
   }
   .sort-btn.active { background: rgba(108,99,255,0.15); border-color: var(--accent); color: var(--accent); }
 </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js">
+let chartObj = null;
+let showingChart = false;
+
+function toggleChart() {
+  showingChart = !showingChart;
+  document.getElementById('resultsInner').style.display = showingChart ? 'none' : 'flex';
+  document.getElementById('chartView').style.display = showingChart ? 'block' : 'none';
+  if (showingChart) {
+    renderChart(lastMatchedItems || []);
+  }
+}
+
+let lastMatchedItems = [];
+
+// Override applyFilter to hook lastMatchedItems
+const originalApplyFilter = applyFilter;
+applyFilter = function() {
+  // Execute the original logic... wait, applyFilter doesn't return anything.
+  // Instead, hook renderResults!
+}
+
+// Intercept renderResults
+const originalRenderResults = renderResults;
+renderResults = function(items, isFavoritesMode = false) {
+  lastMatchedItems = items;
+  originalRenderResults(items, isFavoritesMode);
+  if (showingChart) {
+    renderChart(items);
+  }
+};
+
+function renderChart(items) {
+  if (!items || items.length === 0) return;
+  const ctx = document.getElementById('trendChart').getContext('2d');
+  
+  // Group by date
+  const groups = {};
+  items.forEach(it => {
+    if (!it.date) return;
+    const dStr = it.date.slice(0, 10);
+    if (!groups[dStr]) groups[dStr] = { sumPrice: 0, sumCp: 0, count: 0 };
+    groups[dStr].sumPrice += it.price;
+    groups[dStr].sumCp += it.cp1;
+    groups[dStr].count++;
+  });
+  
+  const dates = Object.keys(groups).sort();
+  const avgPrices = dates.map(d => groups[d].sumPrice / groups[d].count);
+  const avgCps = dates.map(d => groups[d].sumCp / groups[d].count);
+  
+  if (chartObj) {
+    chartObj.destroy();
+  }
+  
+  Chart.defaults.color = '#E8E8F0';
+  Chart.defaults.font.family = "-apple-system, 'Noto Sans TC', sans-serif";
+  
+  chartObj = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: dates,
+      datasets: [
+        {
+          label: '平均價格',
+          data: avgPrices,
+          borderColor: '#00E676',
+          backgroundColor: 'rgba(0, 230, 118, 0.1)',
+          yAxisID: 'y',
+          tension: 0.3,
+          fill: true
+        },
+        {
+          label: '平均 CP',
+          data: avgCps,
+          borderColor: '#6C63FF',
+          backgroundColor: 'transparent',
+          yAxisID: 'y1',
+          tension: 0.3,
+          borderDash: [5, 5]
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: { grid: { color: '#2A2A4A' } },
+        y: { 
+          type: 'linear', display: true, position: 'left',
+          grid: { color: '#2A2A4A' },
+          title: { display: true, text: '價格 ($)'} 
+        },
+        y1: {
+          type: 'linear', display: true, position: 'right',
+          grid: { drawOnChartArea: false },
+          title: { display: true, text: 'CP 值'} 
+        }
+      }
+    }
+  });
+}
+
+</script>
 </head>
 <body>
 
@@ -240,6 +344,7 @@
       <div class="title">8591 看盤雷達</div>
       <div class="subtitle" style="display:flex; align-items:center; gap:6px; margin-top:4px;">
         <button onclick="copyGeminiPrompt(this)" style="background:linear-gradient(90deg, var(--accent), var(--accent2)); border:none; border-radius:8px; color:#fff; font-size:10px; padding:4px 8px; font-weight:bold; cursor:pointer;">🤖 複製規則</button>
+        <button onclick="toggleChart()" style="background:linear-gradient(90deg, var(--accent2), var(--accent)); border:none; border-radius:8px; color:#fff; font-size:10px; padding:4px 8px; font-weight:bold; cursor:pointer;">📊 切換走勢圖</button>
         <button onclick="downloadGeminiDatabase(this)" style="background:linear-gradient(90deg, #FF6B6B, #FF8E53); border:none; border-radius:8px; color:#fff; font-size:10px; padding:4px 8px; font-weight:bold; cursor:pointer;">📥 下載實時大數據檔</button>
       </div>
     </div>
@@ -304,6 +409,12 @@
       <div class="empty-icon">📊</div>
       <div class="empty-text">準備就緒</div>
       <div class="empty-sub">選遊戲 → 設條件 → 搜尋</div>
+    </div>
+  </div>
+
+  <div class="results-inner" id="chartView" style="display:none;">
+    <div class="card" style="padding: 20px 10px;">
+        <canvas id="trendChart"></canvas>
     </div>
   </div>
 </div>
@@ -709,6 +820,109 @@ let debTimer;
 document.getElementById('keyword').addEventListener('keydown', e => {
   if (e.key === 'Enter' && !rawRows.length) doSearch();
 });
+
+let chartObj = null;
+let showingChart = false;
+
+function toggleChart() {
+  showingChart = !showingChart;
+  document.getElementById('resultsInner').style.display = showingChart ? 'none' : 'flex';
+  document.getElementById('chartView').style.display = showingChart ? 'block' : 'none';
+  if (showingChart) {
+    renderChart(lastMatchedItems || []);
+  }
+}
+
+let lastMatchedItems = [];
+
+// Override applyFilter to hook lastMatchedItems
+const originalApplyFilter = applyFilter;
+applyFilter = function() {
+  // Execute the original logic... wait, applyFilter doesn't return anything.
+  // Instead, hook renderResults!
+}
+
+// Intercept renderResults
+const originalRenderResults = renderResults;
+renderResults = function(items, isFavoritesMode = false) {
+  lastMatchedItems = items;
+  originalRenderResults(items, isFavoritesMode);
+  if (showingChart) {
+    renderChart(items);
+  }
+};
+
+function renderChart(items) {
+  if (!items || items.length === 0) return;
+  const ctx = document.getElementById('trendChart').getContext('2d');
+  
+  // Group by date
+  const groups = {};
+  items.forEach(it => {
+    if (!it.date) return;
+    const dStr = it.date.slice(0, 10);
+    if (!groups[dStr]) groups[dStr] = { sumPrice: 0, sumCp: 0, count: 0 };
+    groups[dStr].sumPrice += it.price;
+    groups[dStr].sumCp += it.cp1;
+    groups[dStr].count++;
+  });
+  
+  const dates = Object.keys(groups).sort();
+  const avgPrices = dates.map(d => groups[d].sumPrice / groups[d].count);
+  const avgCps = dates.map(d => groups[d].sumCp / groups[d].count);
+  
+  if (chartObj) {
+    chartObj.destroy();
+  }
+  
+  Chart.defaults.color = '#E8E8F0';
+  Chart.defaults.font.family = "-apple-system, 'Noto Sans TC', sans-serif";
+  
+  chartObj = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: dates,
+      datasets: [
+        {
+          label: '平均價格',
+          data: avgPrices,
+          borderColor: '#00E676',
+          backgroundColor: 'rgba(0, 230, 118, 0.1)',
+          yAxisID: 'y',
+          tension: 0.3,
+          fill: true
+        },
+        {
+          label: '平均 CP',
+          data: avgCps,
+          borderColor: '#6C63FF',
+          backgroundColor: 'transparent',
+          yAxisID: 'y1',
+          tension: 0.3,
+          borderDash: [5, 5]
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: { grid: { color: '#2A2A4A' } },
+        y: { 
+          type: 'linear', display: true, position: 'left',
+          grid: { color: '#2A2A4A' },
+          title: { display: true, text: '價格 ($)'} 
+        },
+        y1: {
+          type: 'linear', display: true, position: 'right',
+          grid: { drawOnChartArea: false },
+          title: { display: true, text: 'CP 值'} 
+        }
+      }
+    }
+  });
+}
+
 </script>
 </body>
 </html>

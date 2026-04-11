@@ -1,4 +1,5 @@
 import os
+import requests
 import json
 import gspread
 from datetime import datetime
@@ -20,6 +21,22 @@ try:
                     break
 except Exception:
     pass
+
+
+DISCORD_HOOK = ""
+try:
+    with open(scraper_path, "r", encoding="utf-8") as f:
+        content = f.read()
+        m = re.search(r'DISCORD_PRICE_DROP\s*=\s*["']([^"']+)["']', content)
+        if m:
+            DISCORD_HOOK = m.group(1)
+except: pass
+
+def send_discord_webhook(msg):
+    if not DISCORD_HOOK: return
+    try:
+        requests.post(DISCORD_HOOK, json={"content": msg}, timeout=5)
+    except: pass
 
 GAMES = ["原神", "鳴潮", "崩鐵", "絕區零"]
 
@@ -85,6 +102,7 @@ def main():
 
     big_sellers = get_big_sellers()
     print(f"目前大盤商名額: {len(big_sellers)} 位")
+    report_msg = f"🤖 **【每日維護完成報告】**\n✅ 系統存活且正常運作中！\n- 目前大盤商總數：{len(big_sellers)} 位\n"
 
     for game_name in GAMES:
         history_sheet_name = f"{game_name}-成交紀錄"
@@ -163,7 +181,10 @@ def main():
             print(f"更新 {active_sheet_name}: {len(updates_active)} 個儲存格")
             ws_active.batch_update(updates_active)
 
+        report_msg += f"- **{game_name}**: 更新 {len(updates_hist)} 筆歷史、{len(updates_active)} 筆在架\n"
+
     print(f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 每日自動維護完成！")
+    send_discord_webhook(report_msg)
 
 if __name__ == "__main__":
     main()
