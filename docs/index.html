@@ -835,12 +835,7 @@ function toggleChart() {
 
 let lastMatchedItems = [];
 
-// Override applyFilter to hook lastMatchedItems
-const originalApplyFilter = applyFilter;
-applyFilter = function() {
-  // Execute the original logic... wait, applyFilter doesn't return anything.
-  // Instead, hook renderResults!
-}
+
 
 // Intercept renderResults
 const originalRenderResults = renderResults;
