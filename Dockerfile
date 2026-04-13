@@ -27,4 +27,5 @@ ENV PYTHONUNBUFFERED=1
 # 設定伺服器時區為台灣時間 (UTC+8)
 ENV TZ="Asia/Taipei"
 
-CMD ["./start.sh"]
+# api_server.py 是唯一入口點 — 它會在內部啟動爬蟲與 Discord bot
+CMD ["python", "api_server.py"]

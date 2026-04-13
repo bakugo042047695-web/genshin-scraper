@@ -1,14 +1,14 @@
 import os
 import json
+import subprocess
+import sys
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from pymongo import MongoClient
 
 app = Flask(__name__)
-# Enable CORS so the PWA GitHub Pages can hit this API
 CORS(app)
 
-# MongoDB Connection
 MONGO_URI = os.environ.get("MONGODB_URI", "mongodb+srv://genshin:genshin123@cluster0.svtlvs0.mongodb.net/scraper_db?appName=Cluster0")
 
 def get_db():
@@ -19,11 +19,40 @@ def get_db():
         db = client["scraper_db"]
     return db
 
+# ─── Start background workers ───────────────────────────────────────────────
+BASE = os.path.dirname(os.path.abspath(__file__))
+
+def start_workers():
+    """Start scraper and Discord bot as background subprocesses."""
+    procs = []
+    
+    discord_path = os.path.join(BASE, "discord_bot.py")
+    if os.path.exists(discord_path):
+        p = subprocess.Popen([sys.executable, discord_path],
+                             stdout=sys.stdout, stderr=sys.stderr)
+        procs.append(("discord_bot", p))
+        print(f"[API] Discord bot started (pid={p.pid})")
+    
+    scraper_path = os.path.join(BASE, "genshin_scraper_original.py")
+    if os.path.exists(scraper_path):
+        p = subprocess.Popen([sys.executable, scraper_path],
+                             stdout=sys.stdout, stderr=sys.stderr)
+        procs.append(("scraper", p))
+        print(f"[API] Scraper started (pid={p.pid})")
+    
+    return procs
+
+# ─── API routes ─────────────────────────────────────────────────────────────
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({"status": "alive"}), 200
+
 @app.route('/api/targets', methods=['GET'])
 def get_targets():
     try:
         db = get_db()
         targets = list(db["custom_targets"].find({}))
+        # _id is the URL string, already serializable
         return jsonify({"status": "ok", "data": targets}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
@@ -35,7 +64,11 @@ def add_target():
         return jsonify({"status": "error", "message": "Missing url or target_price"}), 400
     
     url = data['url']
-    target_price = int(data['target_price'])
+    try:
+        target_price = int(data['target_price'])
+    except (ValueError, TypeError):
+        return jsonify({"status": "error", "message": "target_price must be integer"}), 400
+    
     title = data.get('title', 'Unknown Item')
     
     db = get_db()
@@ -44,20 +77,18 @@ def add_target():
         {"$set": {"target_price": target_price, "title": title, "alerted": False}},
         upsert=True
     )
-    
-    return jsonify({"status": "ok", "message": "Target saved successfully"}), 200
+    return jsonify({"status": "ok", "message": "Target saved"}), 200
 
 @app.route('/api/targets/<path:url>', methods=['DELETE'])
 def delete_target(url):
     db = get_db()
     db["custom_targets"].delete_one({"_id": url})
-    return jsonify({"status": "ok", "message": "Target deleted"}), 200
+    return jsonify({"status": "ok"}), 200
 
-@app.route('/health', methods=['GET'])
-def health_check():
-    return jsonify({"status": "alive"}), 200
-
+# ─── Entry point ────────────────────────────────────────────────────────────
 if __name__ == '__main__':
-    # Railway passes the PORT via environment variable
+    start_workers()
     port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    print(f"[API] Flask listening on 0.0.0.0:{port}")
+    # threaded=True so Flask doesn't block on slow Mongo calls
+    app.run(host='0.0.0.0', port=port, threaded=True)
