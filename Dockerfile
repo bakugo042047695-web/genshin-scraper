@@ -28,4 +28,5 @@ ENV PYTHONUNBUFFERED=1
 ENV TZ="Asia/Taipei"
 
 # api_server.py 是唯一入口點 — 它會在內部啟動爬蟲與 Discord bot
-CMD ["python", "api_server.py"]
+# 使用 gunicorn 以確保 Railway 反向代理可以正確通訊
+CMD ["sh", "-c", "python -c 'import api_server; api_server.start_workers()' && gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 api_server:app"]

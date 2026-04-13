@@ -13,11 +13,7 @@ MONGO_URI = os.environ.get("MONGODB_URI", "mongodb+srv://genshin:genshin123@clus
 
 def get_db():
     client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
-    try:
-        db = client.get_default_database()
-    except Exception:
-        db = client["scraper_db"]
-    return db
+    return client["scraper_db"]
 
 # ─── Start background workers ───────────────────────────────────────────────
 BASE = os.path.dirname(os.path.abspath(__file__))
