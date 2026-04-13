@@ -580,6 +580,7 @@ async function doSearch() {
     const items = Object.values(favs);
     rawRows = []; // Not used for filtering in favorites view
     items.sort((a,b) => sortBy === 'cp' ? a.cp1 - b.cp1 : a.price - b.price);
+    await fetchTargets();
     setStatus(`追蹤清單：共 ${items.length} 筆`);
     renderResults(items, true);
     return;
@@ -594,6 +595,7 @@ async function doSearch() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const text = await res.text();
     rawRows = parseCSV(text);
+    await fetchTargets();
     applyFilter();
   } catch(e) {
     setStatus('❌ 讀取失敗：' + e.message);
