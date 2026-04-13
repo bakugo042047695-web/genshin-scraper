@@ -9,5 +9,5 @@ beautifulsoup4
 matplotlib
 pandas
 discord.py
-flask
-flask-cors
+flask
+flask-cors
