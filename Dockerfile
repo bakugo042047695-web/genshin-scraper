@@ -10,6 +10,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # 複製程式碼與 tier list JSON（靜態設定檔）
 COPY genshin_scraper_original.py .
+COPY api_server.py .
 COPY discord_bot.py .
 COPY start.sh .
 COPY genshin_tier_list.json .
