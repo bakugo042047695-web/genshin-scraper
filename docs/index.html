@@ -922,11 +922,16 @@ function renderResults(items, isFavoritesMode = false) {
     
     let sellerHtml = '';
     if (r.seller) {
+      const isBig = r.seller.includes('🍽️');
       let sRaw = r.seller.replace(/[^a-zA-Z0-9]/g, '');
       if (/^\d+$/.test(sRaw)) {
-        sellerHtml = `<span class="badge badge-seller clickable" onclick="openSeller(event, '${sRaw}')">👤 賣家:${sRaw}</span>`;
+        if (isBig) {
+          sellerHtml = `<span class="badge badge-seller clickable" style="background: rgba(255, 107, 107, 0.2); color: #ff6b6b; border: 1px solid rgba(255,107,107,0.3);" onclick="openSeller(event, '${sRaw}')">🍽️ 大盤商:${sRaw}</span>`;
+        } else {
+          sellerHtml = `<span class="badge badge-seller clickable" onclick="openSeller(event, '${sRaw}')">👤 賣家:${sRaw}</span>`;
+        }
       } else {
-        sellerHtml = `<span class="badge badge-seller">👤 ${escHtml(r.seller)}</span>`;
+        sellerHtml = `<span class="badge badge-seller">${isBig ? '🍽️' : '👤'} ${escHtml(r.seller)}</span>`;
       }
     }
 
