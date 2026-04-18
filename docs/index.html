@@ -229,6 +229,16 @@
     transition: all 0.15s;
   }
   .sort-btn.active { background: rgba(108,99,255,0.15); border-color: var(--accent); color: var(--accent); }
+
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; padding: 20px;}
+  .modal-content { background: var(--surface); padding: 20px; border-radius: var(--radius); border: 1px solid var(--border); width: 100%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);}
+  .modal-content h3 { margin-bottom: 10px; color: var(--text); }
+  .modal-content textarea { width: 100%; height: 100px; background: var(--card); color: var(--text); padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; font-family: monospace; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  .modal-btn { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
+  .btn-cancel { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-save { background: var(--accent); color: #fff; }
 </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js">
 let chartObj = null;
@@ -258,15 +268,15 @@ renderResults = function(items, isFavoritesMode = false) {
   lastMatchedItems = items;
   originalRenderResults(items, isFavoritesMode);
   if (showingChart) {
-    renderChart(items);
+    renderChart(items, historyMatchedItems || []);
   }
 };
 
-function renderChart(items) {
-  if (!items || items.length === 0) return;
+function renderChart(items, histItems) {
+  if ((!items || items.length === 0) && (!histItems || histItems.length === 0)) return;
   const ctx = document.getElementById('trendChart').getContext('2d');
   
-  // Group by date
+  // Group current by date
   const groups = {};
   items.forEach(it => {
     if (!it.date) return;
@@ -276,15 +286,28 @@ function renderChart(items) {
     groups[dStr].sumCp += it.cp1;
     groups[dStr].count++;
   });
-  
-  const dates = Object.keys(groups).sort();
-  const avgPrices = dates.map(d => groups[d].sumPrice / groups[d].count);
-  const avgCps = dates.map(d => groups[d].sumCp / groups[d].count);
-  
-  if (chartObj) {
-    chartObj.destroy();
+
+  // Group history by date (min price band)
+  const histLow = {};
+  if (histItems && histItems.length > 0) {
+      histItems.forEach(it => {
+          if (!it.date) return;
+          const dStr = it.date.slice(0, 10);
+          if (!histLow[dStr]) histLow[dStr] = { minPrice: 999999 };
+          if (it.price && it.price < histLow[dStr].minPrice) histLow[dStr].minPrice = it.price;
+      });
   }
   
+  const dates = [...new Set([...Object.keys(groups), ...Object.keys(histLow)])].sort();
+  
+  const avgPrices = dates.map(d => groups[d] ? groups[d].sumPrice / groups[d].count : null);
+  const avgCps = dates.map(d => groups[d] ? groups[d].sumCp / groups[d].count : null);
+  const historicMins = dates.map(d => {
+      if(histLow[d] && histLow[d].minPrice < 999999) return histLow[d].minPrice;
+      return null;
+  });
+  
+  if (chartObj) chartObj.destroy();
   Chart.defaults.color = '#E8E8F0';
   Chart.defaults.font.family = "-apple-system, 'Noto Sans TC', sans-serif";
   
@@ -294,13 +317,25 @@ function renderChart(items) {
       labels: dates,
       datasets: [
         {
-          label: '平均價格',
+          label: '歷史觸底價範圍帶',
+          data: historicMins,
+          borderColor: 'rgba(136, 136, 170, 0.4)',
+          backgroundColor: 'rgba(136, 136, 170, 0.25)',
+          yAxisID: 'y',
+          fill: true,
+          tension: 0.3,
+          spanGaps: true,
+          pointRadius: 2
+        },
+        {
+          label: '在架均價',
           data: avgPrices,
           borderColor: '#00E676',
-          backgroundColor: 'rgba(0, 230, 118, 0.1)',
+          backgroundColor: 'transparent',
           yAxisID: 'y',
           tension: 0.3,
-          fill: true
+          spanGaps: true,
+          borderWidth: 3
         },
         {
           label: '平均 CP',
@@ -309,7 +344,8 @@ function renderChart(items) {
           backgroundColor: 'transparent',
           yAxisID: 'y1',
           tension: 0.3,
-          borderDash: [5, 5]
+          borderDash: [5, 5],
+          spanGaps: true
         }
       ]
     },
@@ -345,6 +381,7 @@ function renderChart(items) {
       <div class="subtitle" style="display:flex; align-items:center; gap:6px; margin-top:4px;">
         <button onclick="copyGeminiPrompt(this)" style="background:linear-gradient(90deg, var(--accent), var(--accent2)); border:none; border-radius:8px; color:#fff; font-size:10px; padding:4px 8px; font-weight:bold; cursor:pointer;">🤖 複製規則</button>
         <button onclick="toggleChart()" style="background:linear-gradient(90deg, var(--accent2), var(--accent)); border:none; border-radius:8px; color:#fff; font-size:10px; padding:4px 8px; font-weight:bold; cursor:pointer;">📊 切換走勢圖</button>
+        <button onclick="document.getElementById('weightModal').style.display='flex'" style="background:linear-gradient(90deg, #9C27B0, #E040FB); border:none; border-radius:8px; color:#fff; font-size:10px; padding:4px 8px; font-weight:bold; cursor:pointer;">⚖️ 自訂權重</button>
         <button onclick="downloadGeminiDatabase(this)" style="background:linear-gradient(90deg, #FF6B6B, #FF8E53); border:none; border-radius:8px; color:#fff; font-size:10px; padding:4px 8px; font-weight:bold; cursor:pointer;">📥 下載實時大數據檔</button>
       </div>
     </div>
@@ -427,6 +464,18 @@ function renderChart(items) {
   </div>
 </div>
 
+<div class="modal-overlay" id="weightModal">
+  <div class="modal-content">
+    <h3>⚙️ 自訂角色權重</h3>
+    <div style="font-size:12px; color:var(--muted); margin-bottom:8px;">格式「角色名:權重」，一行一個。權重越高越能排前面。修改後會即時反映！<br>例如：<br>火神: 2.5<br>黃泉: 2.0</div>
+    <textarea id="weightOverrides" placeholder="火神: 2.5&#10;黃泉: 2.0"></textarea>
+    <div class="modal-actions">
+      <button class="modal-btn btn-cancel" onclick="document.getElementById('weightModal').style.display='none'">取消</button>
+      <button class="modal-btn btn-save" onclick="document.getElementById('weightModal').style.display='none'; applyFilter();">套用並重新計算</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const SHEET_ID = '1SOt-2DwJVEcEgvuvQfAvW6ue6WcrnvywxPbKIJFEcYI';
 const API_BASE = 'https://genshin-auto-scraper-production.up.railway.app';
@@ -440,7 +489,9 @@ const COLS = {
 let currentSheet = '崩鐵';
 let currentType  = 'in_progress';
 let rawRows = [];
-let sortBy = 'cp';  // 'cp' or 'price'
+let historyRows = [];
+let historyMatchedItems = [];
+let sortBy = 'cp';
 
 // Favorites storage
 
@@ -599,10 +650,19 @@ async function doSearch() {
   setStatus('連線 Google Sheets 中…', true);
 
   try {
-    const res = await fetch(csvUrl(currentSheet));
+    const isCompleted = currentSheet.includes('成交紀錄');
+    const histSheet = isCompleted ? currentSheet : currentSheet + '-成交紀錄';
+    const [res, histRes] = await Promise.all([
+      fetch(csvUrl(currentSheet)),
+      fetch(csvUrl(histSheet))
+    ]);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const text = await res.text();
-    rawRows = parseCSV(text);
+    rawRows = parseCSV(await res.text());
+    if (res.ok && res.url !== histRes.url) {
+      historyRows = parseCSV(await histRes.text());
+    } else {
+      historyRows = rawRows;
+    }
     await fetchTargets();
     applyFilter();
   } catch(e) {
@@ -856,62 +916,100 @@ function applyFilter() {
   const df      = document.getElementById('dateFilter').value;
   const dFrom   = document.getElementById('dateFrom').value;
   const dTo     = document.getElementById('dateTo').value;
-  const c       = COLS[currentType];
   const now     = new Date();
 
-  const matched = [];
-  for (const row of rawRows) {
-    const g = i => row[i] || '';
-    const title  = g(c.title);
-    const priceS = g(c.price).replace(/[$,]/g,'');
-    const cp1S   = g(c.cp1).replace(/,/g,'');
-    const price  = parseFloat(priceS) || 0;
-    const cp1    = parseFloat(cp1S)   || 999;
-    const goldChar = parseInt(g(c.gold)) || 0;
-    const goldWeap = parseInt(g(c.goldWeap)) || 0;
+  // Load custom weights
+  const overridesText = document.getElementById('weightOverrides')?.value || '';
+  const clientWeights = {};
+  overridesText.split('\n').forEach(line => {
+      const parts = line.split(':');
+      if(parts.length === 2 && parts[0].trim()) {
+          clientWeights[parts[0].trim().toLowerCase()] = parseFloat(parts[1]);
+      }
+  });
 
-    if (price === 0) continue;
-    if (price < pMin || price > pMax) continue;
-    
-    // 金角/金武 +-10 過濾
-    if (targetGoldChar !== '') {
-        const tgtChar = parseInt(targetGoldChar);
-        if (Math.abs(goldChar - tgtChar) > 10) continue;
-    }
-    if (targetGoldWeap !== '') {
-        const tgtWeap = parseInt(targetGoldWeap);
-        if (Math.abs(goldWeap - tgtWeap) > 10) continue;
-    }
+  const doFilter = (rows, cCols) => {
+    const arr = [];
+    for (const row of rows) {
+      const g = i => row[i] || '';
+      const title  = g(cCols.title);
+      const priceS = g(cCols.price).replace(/[$,]/g,'');
+      const cp1S   = g(cCols.cp1).replace(/,/g,'');
+      const price  = parseFloat(priceS) || 0;
+      let cp1    = parseFloat(cp1S)   || 999;
+      const goldChar = parseInt(g(cCols.gold)) || 0;
+      const goldWeap = parseInt(g(cCols.goldWeap)) || 0;
 
-    if (kw && !smartMatch(title.toLowerCase(), kw)) continue;
-    if (cpMax < 999 && cp1 > cpMax) continue;
+      if (price === 0) continue;
+      if (price < pMin || price > pMax) continue;
+      
+      if (targetGoldChar !== '') {
+          const tgtChar = parseInt(targetGoldChar);
+          if (Math.abs(goldChar - tgtChar) > 10) continue;
+      }
+      if (targetGoldWeap !== '') {
+          const tgtWeap = parseInt(targetGoldWeap);
+          if (Math.abs(goldWeap - tgtWeap) > 10) continue;
+      }
 
-    let dateStr = g(c.date).slice(0,10).replace(/[^\d-]/g, '');
-    if (df !== 'all' && dateStr) {
-      const rowDate = new Date(dateStr);
-      if (!isNaN(rowDate)) {
-        if (df === '1w' && (now - rowDate) > 7*86400000) continue;
-        if (df === '2w' && (now - rowDate) > 14*86400000) continue;
-        if (df === '1m' && (now - rowDate) > 30*86400000) continue;
-        if (df === 'custom') {
-          if (dFrom && rowDate < new Date(dFrom)) continue;
-          if (dTo && rowDate > new Date(dTo)) continue;
+      if (kw && !smartMatch(title.toLowerCase(), kw)) continue;
+      
+      // -- Client-side Weight Overrider Logic --
+      let clientScoreApplied = false;
+      if (Object.keys(clientWeights).length > 0) {
+          let maxWt = 1.0;
+          Object.keys(clientWeights).forEach(cw => {
+             if (title.toLowerCase().includes(cw)) {
+                maxWt = Math.max(maxWt, clientWeights[cw]);
+             }
+          });
+          const score = (goldChar * maxWt * 10) + (goldWeap * maxWt * 5);
+          if (score > 0) {
+             cp1 = price / score;  // override cp1 locally
+             clientScoreApplied = true;
+          }
+      }
+
+      if (cpMax < 999 && cp1 > cpMax) continue;
+
+      let dateStr = g(cCols.date).slice(0,10).replace(/[^\d-]/g, '');
+      if (df !== 'all' && dateStr) {
+        const rowDate = new Date(dateStr);
+        if (!isNaN(rowDate)) {
+          if (df === '1w' && (now - rowDate) > 7*86400000) continue;
+          if (df === '2w' && (now - rowDate) > 14*86400000) continue;
+          if (df === '1m' && (now - rowDate) > 30*86400000) continue;
+          if (df === 'custom') {
+            if (dFrom && rowDate < new Date(dFrom)) continue;
+            if (dTo && rowDate > new Date(dTo)) continue;
+          }
         }
       }
+
+      arr.push({
+        title, price, cp1, clientScoreApplied,
+        gold:   g(cCols.gold),
+        goldWeap: g(cCols.goldWeap),
+        seller: g(cCols.seller),
+        url:    g(cCols.url),
+        date:   g(cCols.date).slice(0,10)
+      });
     }
+    return arr;
+  };
 
-    matched.push({
-      title, price, cp1,
-      gold:   g(c.gold),
-      goldWeap: g(c.goldWeap),
-      seller: g(c.seller),
-      url:    g(c.url),
-      date:   g(c.date).slice(0,10)
-    });
-  }
+  const matched = doFilter(rawRows, COLS[currentType]);
+  historyMatchedItems = doFilter(historyRows, COLS.completed);
 
-  matched.sort((a,b) => sortBy === 'cp' ? a.cp1 - b.cp1 : a.price - b.price);
-  setStatus(`共 ${rawRows.length} 筆，符合條件 ${matched.length} 筆（依 ${sortBy==='cp'?'CP':'價格'} 由低到高）`);
+  matched.sort((a,b) => {
+      if(sortBy === 'cp') return a.cp1 - b.cp1;
+      if(sortBy === 'price') return a.price - b.price;
+      // Date sort (Desc)
+      return (b.date || '').localeCompare(a.date || '');
+  });
+  
+  let sortText = sortBy==='cp'?'CP':sortBy==='price'?'價格':'時間';
+  setStatus(`共 ${rawRows.length} 筆，符合條件 ${matched.length} 筆（依 ${sortText} 排序）`);
   renderResults(matched);
 }
 
@@ -932,6 +1030,7 @@ function renderResults(items, isFavoritesMode = false) {
     排序：
     <button class="sort-btn ${sortBy==='cp'?'active':''}" onclick="setSort('cp')">CP↑</button>
     <button class="sort-btn ${sortBy==='price'?'active':''}" onclick="setSort('price')">價格↑</button>
+    <button class="sort-btn ${sortBy==='date'?'active':''}" onclick="setSort('date')">發布日</button>
     <span style="margin-left:auto;color:var(--muted)">${items.length} 筆</span>
   </div>`;
 
@@ -939,7 +1038,7 @@ function renderResults(items, isFavoritesMode = false) {
 
   const cards = items.map(r => {
     const href = r.url || '#';
-    const cpDisplay = r.cp1 < 900 ? `CP ${r.cp1.toFixed(2)}` : '—';
+    const cpDisplay = r.cp1 < 900 ? `CP ${r.cp1.toFixed(2)}${r.clientScoreApplied ? ' ⚙️' : ''}` : '—';
     const isFav = !!favs[r.url];
     const isTargeted = !!customTargets[r.url];
     const dataStr = encodeURIComponent(JSON.stringify(r));
@@ -1154,15 +1253,15 @@ renderResults = function(items, isFavoritesMode = false) {
   lastMatchedItems = items;
   originalRenderResults(items, isFavoritesMode);
   if (showingChart) {
-    renderChart(items);
+    renderChart(items, historyMatchedItems || []);
   }
 };
 
-function renderChart(items) {
-  if (!items || items.length === 0) return;
+function renderChart(items, histItems) {
+  if ((!items || items.length === 0) && (!histItems || histItems.length === 0)) return;
   const ctx = document.getElementById('trendChart').getContext('2d');
   
-  // Group by date
+  // Group current by date
   const groups = {};
   items.forEach(it => {
     if (!it.date) return;
@@ -1172,15 +1271,28 @@ function renderChart(items) {
     groups[dStr].sumCp += it.cp1;
     groups[dStr].count++;
   });
-  
-  const dates = Object.keys(groups).sort();
-  const avgPrices = dates.map(d => groups[d].sumPrice / groups[d].count);
-  const avgCps = dates.map(d => groups[d].sumCp / groups[d].count);
-  
-  if (chartObj) {
-    chartObj.destroy();
+
+  // Group history by date (min price band)
+  const histLow = {};
+  if (histItems && histItems.length > 0) {
+      histItems.forEach(it => {
+          if (!it.date) return;
+          const dStr = it.date.slice(0, 10);
+          if (!histLow[dStr]) histLow[dStr] = { minPrice: 999999 };
+          if (it.price && it.price < histLow[dStr].minPrice) histLow[dStr].minPrice = it.price;
+      });
   }
   
+  const dates = [...new Set([...Object.keys(groups), ...Object.keys(histLow)])].sort();
+  
+  const avgPrices = dates.map(d => groups[d] ? groups[d].sumPrice / groups[d].count : null);
+  const avgCps = dates.map(d => groups[d] ? groups[d].sumCp / groups[d].count : null);
+  const historicMins = dates.map(d => {
+      if(histLow[d] && histLow[d].minPrice < 999999) return histLow[d].minPrice;
+      return null;
+  });
+  
+  if (chartObj) chartObj.destroy();
   Chart.defaults.color = '#E8E8F0';
   Chart.defaults.font.family = "-apple-system, 'Noto Sans TC', sans-serif";
   
@@ -1190,13 +1302,25 @@ function renderChart(items) {
       labels: dates,
       datasets: [
         {
-          label: '平均價格',
+          label: '歷史觸底價範圍帶',
+          data: historicMins,
+          borderColor: 'rgba(136, 136, 170, 0.4)',
+          backgroundColor: 'rgba(136, 136, 170, 0.25)',
+          yAxisID: 'y',
+          fill: true,
+          tension: 0.3,
+          spanGaps: true,
+          pointRadius: 2
+        },
+        {
+          label: '在架均價',
           data: avgPrices,
           borderColor: '#00E676',
-          backgroundColor: 'rgba(0, 230, 118, 0.1)',
+          backgroundColor: 'transparent',
           yAxisID: 'y',
           tension: 0.3,
-          fill: true
+          spanGaps: true,
+          borderWidth: 3
         },
         {
           label: '平均 CP',
@@ -1205,7 +1329,8 @@ function renderChart(items) {
           backgroundColor: 'transparent',
           yAxisID: 'y1',
           tension: 0.3,
-          borderDash: [5, 5]
+          borderDash: [5, 5],
+          spanGaps: true
         }
       ]
     },
