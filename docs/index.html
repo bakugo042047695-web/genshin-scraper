@@ -26,7 +26,13 @@
     --safe-bot: env(safe-area-inset-bottom, 0px);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; }
+  html, body { height: 100%; cursor: url('cat_cursor.png') 16 16, auto; }
+  .clickable, a, button, .tab, select, input, .sort-btn, .fav-btn {
+    cursor: url('cat_cursor.png') 16 16, pointer !important;
+  }
+  #chartView:fullscreen { background: var(--surface); padding: 20px; overflow-y: auto; }
+  #chartView:-webkit-full-screen { background: var(--surface); padding: 20px; overflow-y: auto; }
+  
   body {
     font-family: -apple-system, 'Noto Sans TC', BlinkMacSystemFont, sans-serif;
     background: var(--bg);
@@ -348,6 +354,15 @@
   </div>
 
   <div class="results-inner" id="chartView" style="display:none; flex-direction:column; gap:10px;">
+    <div style="text-align: right; margin-bottom: -15px; position:relative; z-index:10; right: 10px; top: 10px;">
+        <button class="badge" id="fsBtn" style="background:#2A2A4A; border:1px solid #00D4FF; color:#00D4FF; font-size:14px; padding:6px 12px;" onclick="if(!document.fullscreenElement){document.getElementById('chartView').requestFullscreen();}else{document.exitFullscreen();}">⛶ 全螢幕展示</button>
+    </div>
+    <script>
+        document.addEventListener('fullscreenchange', () => {
+             const btn = document.getElementById('fsBtn');
+             if(btn) btn.innerText = document.fullscreenElement ? '❌ 退出全螢幕' : '⛶ 全螢幕展示';
+        });
+    </script>
     <div class="card" style="padding: 20px 10px;">
         <h4 style="text-align:center;margin-bottom:10px;color:var(--text);">價格 vs 金數 (散佈圖)</h4>
         <canvas id="scatterChart" style="max-height: 250px;"></canvas>
