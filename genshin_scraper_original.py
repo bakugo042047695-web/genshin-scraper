@@ -50,14 +50,14 @@ TIER_WEIGHTS = {
 HIGH_TIER_LEVELS = {"tierSS", "tierS"}
 
 HEADERS = ["發現時間", "上架時間", "標題", "價格", "金角", "金武/專",
-           "純角CP", "含武CP", "加權CP", "預估獲利", "滿命角色", "優於均值", "賣家ID", "連結", "歷來低價", "歷來高價"]
+           "純角CP", "含武CP", "加權CP", "預估獲利", "滿命角色", "優於均值", "賣家ID", "連結", "歷來低價", "歷來高價", "65格式"]
 
 COMPLETED_HEADERS = [
     "成交發現日", "上架時間", "售出所需天數",
     "標題", "價格", "金角", "金武/專",
     "滿命角色", "高Tier角色(SS/S)",
     "純角CP", "含武CP", "加權CP",
-    "賣家ID", "連結", "歷來低價", "歷來高價"
+    "賣家ID", "連結", "歷來低價", "歷來高價", "65格式"
 ]
 
 # ===================== Tier List 載入 =====================
@@ -88,39 +88,28 @@ def load_tier_weights(game_name):
     return char_weights, new_chars, {}, high_tier_chars
 
 def build_games_config():
-    base_alias = {
-        "原神": {
-            "水神": "芙寧娜", "芙芙": "芙寧娜",
-            "草神": "納西妲", "小草神": "納西妲",
-            "雷神": "雷電將軍", "影": "雷電將軍",
-            "萬葉": "楓原萬葉", "葉天帝": "楓原萬葉",
-            "水龍": "那維萊特", "水龍王": "那維萊特",
-            "火神": "瑪薇卡",
-            "僕人": "阿蕾奇諾", "小丑": "阿蕾奇諾",
-            "綾華": "神里綾華", "達達": "達達利亞",
-            "鍾離": "鐘離",
-        },
-        "鳴潮": {"卡卡": "卡卡羅"},
-        "崩鐵": {
-            "花火": "花火", "火花": "花火", 
-            "阮梅": "阮•梅", "丹恆飲月": "丹恆•飲月", "飲月": "丹恆•飲月",
-            "蝶": "遐蝶", "霞蝶": "遐蝶", "希": "希兒",
-            "龍": "丹恆•飲月", "黃": "黃泉", "鏡": "鏡流", 
-            "卡": "卡芙卡", "飛": "飛霄", "砂": "砂金", "符": "符玄", 
-            "銀": "銀狼", "鴨": "布洛妮婭", "托": "托帕", "黑": "黑天鵝",
-            "昔": "昔漣", "月": "長夜月", "星": "星"
-        },
-        "絕區零": {
-            "鯊魚": "艾蓮", "鯊魚妹": "艾蓮", 
-            "老鼠": "簡", "月城柳": "柳", "星見雅": "雅", 
-            "零安比": "士兵0號", "安比零": "士兵0號", 
-            "奧菲與梅格斯": "奧菲", "梅格斯": "瑪格斯",
-            "葉舜光": "葉瞬光", "易萱": "儀玄", "亞莉亞": "愛芮", 
-            "黛奧琳": "琉音", "南宮雨": "南宮羽", "蘇娜": "千夏", 
-            "半月": "般岳", "希德": "席德", "伊達里": "伊德海莉", 
-            "橘馥馥": "橘福福", "真名十": "真斗"
-        },
-    }
+    kb_path = os.path.join(BASE_DIR, "market_knowledge_base.json")
+    base_alias = {}
+    global TYPO_MAP
+    TYPO_MAP = {}
+    if os.path.exists(kb_path):
+        try:
+            with open(kb_path, 'r', encoding='utf-8') as f:
+                kb = json.load(f)
+            for game_k, data in kb.items():
+                if game_k.startswith('_'): continue
+                game_alias = {}
+                for ch in data.get("characters", []) + data.get("characters_extra", []):
+                    cname = ch.get("canonical_name", "")
+                    for a in ch.get("aliases", []):
+                        game_alias[a] = cname
+                base_alias[game_k] = game_alias
+                for w, c in data.get("typo_log", {}).items():
+                    TYPO_MAP[w] = c
+        except Exception as e:
+            print(f"  ⚠️ 讀取 market_knowledge_base.json 失敗：{e}")
+    else:
+        print("  ⚠️ 找不到 market_knowledge_base.json，將使用空別名表")
 
     games = {
         "原神": {
@@ -353,14 +342,26 @@ def _mongo_key(filepath):
 def get_gsheet():
     scopes = ["https://spreadsheets.google.com/feeds",
               "https://www.googleapis.com/auth/drive"]
-    # 優先從環境變數讀取（Railway 部署用）
-    gcp_key_json = os.environ.get("GCP_KEY_JSON", "")
-    if gcp_key_json:
-        info = json.loads(gcp_key_json)
+    # 優先從 Base64 環境變數讀取（最穩定，避免換行符問題）
+    gcp_key_b64 = os.environ.get("GCP_KEY_B64", "")
+    if gcp_key_b64:
+        import base64
+        info = json.loads(base64.b64decode(gcp_key_b64).decode("utf-8"))
         creds = Credentials.from_service_account_info(info, scopes=scopes)
     else:
-        # fallback：本機開發時讀 gcp_key.json 檔案
-        creds = Credentials.from_service_account_file(GCP_KEY_FILE, scopes=scopes)
+        # 次選：從 JSON 環境變數讀取（可能因換行符失敗）
+        gcp_key_json = os.environ.get("GCP_KEY_JSON", "")
+        if gcp_key_json:
+            # 修正 Railway 可能把 \n 轉為真正換行的問題
+            gcp_key_json = gcp_key_json.replace('\r\n', '\\n').replace('\r', '\\n')
+            # 若 private_key 中有未跳脫換行，修正之
+            import re
+            gcp_key_json = re.sub(r'(?<!\\)\n', '\\n', gcp_key_json)
+            info = json.loads(gcp_key_json)
+            creds = Credentials.from_service_account_info(info, scopes=scopes)
+        else:
+            # fallback：本機開發時讀 gcp_key.json 檔案
+            creds = Credentials.from_service_account_file(GCP_KEY_FILE, scopes=scopes)
     return gspread.authorize(creds)
 
 
@@ -373,8 +374,8 @@ def init_gsheet(gc, game_name):
             ws = sh.add_worksheet(title=game_name, rows=5000, cols=16)
         if not ws.get_all_values() or ws.cell(1, 1).value != "發現時間":
             ws.insert_row(HEADERS, 1)
-        if ws.row_count < 5000 or ws.col_count < 16:
-            ws.resize(rows=5000, cols=16)
+        if ws.row_count < 5000 or ws.col_count < 17:
+            ws.resize(rows=5000, cols=17)
         return ws
     except Exception as e:
         print(f"  Google Sheets 初始化失敗：{e}")
@@ -390,8 +391,8 @@ def init_gsheet_completed(gc, game_name):
             ws = sh.add_worksheet(title=sheet_name, rows=5000, cols=16)
         if not ws.get_all_values() or ws.cell(1, 1).value != "成交發現日":
             ws.insert_row(COMPLETED_HEADERS, 1)
-        if ws.row_count < 5000 or ws.col_count < 16:
-            ws.resize(rows=5000, cols=16)
+        if ws.row_count < 5000 or ws.col_count < 17:
+            ws.resize(rows=5000, cols=17)
         return ws
     except Exception as e:
         print(f"  成交紀錄分頁初始化失敗：{e}")
@@ -509,7 +510,7 @@ def update_gsheet(ws, new_items, thresholds, sellers):
                 now_str, r.get('post_time', ''), r['title'], r['price'],
                 r['gold_char'], r['gold_weap'], cp1_str, cp2_str, cpw_str,
                 profit_str, const_str, good_str, seller_str, r['url'],
-                r['price'], r['price']
+                r['price'], r['price'], r.get('has_xy', '')
             ])
         if not rows_to_add:
             print("  Google Sheets：無新資料")
@@ -624,7 +625,8 @@ def update_gsheet_completed(ws, new_trades, sellers, seen_map, high_tier_chars):
                 r['url'],
                 # 成交紀錄就照搬原本標價當作低高價
                 r['price'],
-                r['price']
+                r['price'],
+                r.get('has_xy', '')
             ])
             # ⚠️ 不在這裡 add(r['url'])，等 batch_insert 確認成功再標記
 
@@ -903,6 +905,7 @@ def resolve_alias(name, alias_map):
 def parse_title_smart(title, char_weights, alias_map):
     gold_char, gold_weap, weighted_score = 0, 0, 0
     max_const_chars = []
+    has_xy = ""
 
     m_char = re.search(r'(\d+)金角', title)
     m_weap = re.search(r'(\d+)金(?:武|專)', title)
@@ -954,6 +957,9 @@ def parse_title_smart(title, char_weights, alias_map):
 
     # 6. NM chars (like 61黃泉, 21流螢, 61蝶)
     for match in re.finditer(r'(?:^|[^0-9])([0-6])([0-5])\s*([\u4e00-\u9fffA-Za-z]+)', temp_title):
+        for name, real_name in all_names_map.items():
+            if name in match.group(3):
+                has_xy = "Y"
         add_char_const(match.group(3), int(match.group(1)), int(match.group(2)))
 
     # 7. Find any remaining chars in whole title
@@ -980,7 +986,7 @@ def parse_title_smart(title, char_weights, alias_map):
     if gold_weap == 0:
         gold_weap = sum(char_refine.values())
 
-    return gold_char, gold_weap, weighted_score, max_const_chars
+    return gold_char, gold_weap, weighted_score, max_const_chars, has_xy
 def parse_detail_for_gold(page, url, title):
     try:
         page.goto(url, timeout=30000)
@@ -1401,7 +1407,7 @@ def scrape_pages(main_page, base_url, max_pages, label="",
                     if not is_price_drop:
                         new_in_page += 1
                         
-                    gold_char, gold_weap, weighted, max_const = parse_title_smart(
+                    gold_char, gold_weap, weighted, max_const, has_xy = parse_title_smart(
                         title, char_weights, alias_map)
 
                     if do_detail and detail_page:
@@ -1423,7 +1429,8 @@ def scrape_pages(main_page, base_url, max_pages, label="",
                         "max_const": max_const,
                         "post_time": post_time,
                         "seller_id": seller_id,
-                        "url": detail_url
+                        "url": detail_url,
+                        "has_xy": has_xy
                     })
                 except Exception as e:
                     continue
@@ -1753,18 +1760,28 @@ def run_trend_charts(GAMES):
                 print(f"  ❌ {game_key} 趨勢圖生成失敗：{e}")
 
 if __name__ == "__main__":
-    print("⏰ 排程啟動，每30分鐘執行一次（立即先跑一次）")
-    print("⚡ 快速監控：每2分鐘掃一次首頁新上架（不用 Playwright，超輕量）")
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--once", action="store_true", help="Run one scrape cycle and exit")
+    args = parser.parse_args()
+
     GAMES = build_games_config()
-    
-    # 首次啟動：為展示新功能，強制發送一次趨勢週報
-    run_trend_charts(GAMES)
-    
-    run_scrape()
-    schedule.every(30).minutes.do(run_scrape)
-    schedule.every(2).minutes.do(lambda: fast_track_scan(GAMES))
-    schedule.every().sunday.at("20:00").do(lambda: run_trend_charts(GAMES))
-    
-    while True:
-        schedule.run_pending()
-        time.sleep(30)  # 每 30 秒檢查一次排程（支援 2 分鐘精確度）
+
+    if args.once:
+        print("[--once] One-shot mode: running scrape and exiting")
+        run_scrape()
+        print("[--once] Done.")
+    else:
+        print("排程啟動，每30分鐘執行一次（立即先跑一次）")
+        print("快速監控：每2分鐘掃一次首頁新上架（不用 Playwright，超輕量）")
+        # 首次啟動：為展示新功能，強制發送一次趨勢週報
+        run_trend_charts(GAMES)
+
+        run_scrape()
+        schedule.every(30).minutes.do(run_scrape)
+        schedule.every(2).minutes.do(lambda: fast_track_scan(GAMES))
+        schedule.every().sunday.at("20:00").do(lambda: run_trend_charts(GAMES))
+
+        while True:
+            schedule.run_pending()
+            time.sleep(30)  # 每 30 秒檢查一次排程（支援 2 分鐘精確度）
