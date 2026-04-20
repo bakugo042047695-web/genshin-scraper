@@ -1,5 +1,6 @@
 import os
 import json
+import base64
 import subprocess
 import sys
 from flask import Flask, request, jsonify
@@ -10,6 +11,25 @@ app = Flask(__name__)
 CORS(app)
 
 MONGO_URI = os.environ.get("MONGODB_URI", "mongodb+srv://genshin:genshin123@cluster0.svtlvs0.mongodb.net/scraper_db?appName=Cluster0")
+
+# ─── 啟動時解碼 GCP Key ───────────────────────────────────────────────────────
+def _setup_gcp_key():
+    """將 GCP_KEY_B64 env var 解碼成 gcp_key.json，讓爬蟲直接讀檔案（最穩定）"""
+    b64 = os.environ.get("GCP_KEY_B64", "").strip()
+    if not b64:
+        print("[API] GCP_KEY_B64 not set, skipping gcp_key.json write")
+        return
+    key_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "gcp_key.json")
+    try:
+        decoded = base64.b64decode(b64).decode("utf-8")
+        json.loads(decoded)  # 驗證 JSON 格式正確
+        with open(key_path, "w", encoding="utf-8") as f:
+            f.write(decoded)
+        print(f"[API] gcp_key.json written OK ({len(decoded)} chars)")
+    except Exception as e:
+        print(f"[API] ERROR writing gcp_key.json: {e}")
+
+_setup_gcp_key()
 
 def get_db():
     client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
