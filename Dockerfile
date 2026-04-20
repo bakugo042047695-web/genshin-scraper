@@ -28,5 +28,5 @@ ENV PYTHONUNBUFFERED=1
 ENV TZ="Asia/Taipei"
 
 # api_server.py 是唯一入口點 — 它會在內部啟動爬蟲與 Discord bot
-# Railway 在 Settings > Networking 中固定使用 port 31422
-CMD ["sh", "-c", "exec gunicorn --bind 0.0.0.0:${PORT:-31422} --workers 1 --threads 4 --timeout 120 --preload api_server:app"]
+# 啟動前先將 GCP_KEY_B64 decode 成 gcp_key.json（避免 Python 解析 env var 的換行問題）
+CMD ["sh", "-c", "if [ -n \"$GCP_KEY_B64\" ]; then echo \"$GCP_KEY_B64\" | base64 -d > /app/gcp_key.json && echo '[Docker] gcp_key.json written OK'; fi && exec gunicorn --bind 0.0.0.0:${PORT:-31422} --workers 1 --threads 4 --timeout 120 --preload api_server:app"]
