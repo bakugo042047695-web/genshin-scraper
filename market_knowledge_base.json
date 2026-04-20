@@ -1,0 +1,177 @@
+{
+  "_meta": {
+    "description": "8591帳號市場標題的角色別名庫、打字錯誤記錄、隊伍體系知識庫",
+    "last_updated": "2026-04-18",
+    "notes": "canonical_name=官方正式名，aliases=縮寫/別名/俗稱/同音打字錯誤"
+  },
+
+  "genshin": {
+    "characters": [
+      { "canonical_name": "芙寧娜", "aliases": ["芙芙", "furina", "水神", "芙寧"], "tier": "SS", "team": ["龍王隊", "月感電隊"], "notes": "龍王隊核心輔助" },
+      { "canonical_name": "瑪薇卡", "aliases": ["火神", "mavuika", "瑪薇"], "tier": "SS", "team": ["火神隊"], "notes": "火神隊主C" },
+      { "canonical_name": "那維萊特", "aliases": ["龍王", "neuvillette", "那維"], "tier": "SS", "team": ["龍王隊"], "notes": "龍王隊主C" },
+      { "canonical_name": "鍾離", "aliases": ["鐘離", "中離", "帝君", "岩神", "zhongli", "鐘"], "tier": "SS", "team": ["龍王隊", "火神隊"], "notes": "鐘離/中離/鐘是常見同音打字錯誤" },
+      { "canonical_name": "納西妲", "aliases": ["草神", "小草神", "nahida"], "tier": "SS", "team": ["綻放隊", "超激化隊"], "notes": "" },
+      { "canonical_name": "楓原萬葉", "aliases": ["萬葉", "kazuha"], "tier": "SS", "team": ["龍王隊", "火神隊"], "notes": "通用風輔" },
+      { "canonical_name": "哥倫比婭", "aliases": ["月神", "少女", "columbina"], "tier": "SS", "team": ["月體系", "月感電隊", "月結晶隊"], "notes": "所有月體系隊伍核心，也稱少女/月神" },
+      { "canonical_name": "夜蘭", "aliases": ["yelan"], "tier": "SS", "team": ["龍王隊"], "notes": "" },
+      { "canonical_name": "茜特菈莉", "aliases": ["茜", "citlali"], "tier": "SS", "team": ["火神隊"], "notes": "火神隊重要輔助" },
+      { "canonical_name": "伊涅芙", "aliases": ["伊涅"], "tier": "SS", "team": ["月感電隊"], "notes": "月感電隊必要角色，是正名非簡寫" },
+      { "canonical_name": "阿蕾奇諾", "aliases": ["僕人", "arlecchino", "阿蕾", "阿雷奇諾"], "tier": "SS", "team": ["火神隊"], "notes": "阿雷奇諾是常見打字錯誤" },
+      { "canonical_name": "茲白", "aliases": ["zibai"], "tier": "S", "team": ["月結晶隊"], "notes": "月結晶隊主C" },
+      { "canonical_name": "絲柯克", "aliases": ["斯柯克", "絲科克", "skirk"], "tier": "S", "team": ["水冰隊"], "notes": "目前最強水冰主C，絲科克/斯柯克為常見錯字" },
+      { "canonical_name": "菲林斯", "aliases": ["菲林"], "tier": "S", "team": ["月感電隊"], "notes": "月感電隊主C" },
+      { "canonical_name": "希諾寧", "aliases": ["西諾寧", "xilonen", "希"], "tier": "S", "team": ["火神隊", "龍王隊"], "notes": "西諾寧是常見同音打字錯誤" },
+      { "canonical_name": "奈芙爾", "aliases": ["nefer", "那芙爾"], "tier": "S", "team": ["月感電隊"], "notes": "" },
+      { "canonical_name": "菈烏瑪", "aliases": ["烏拉瑪", "lauma"], "tier": "S", "team": ["月綻放隊"], "notes": "月綻放輔助，烏拉瑪是常見打字錯誤" },
+      { "canonical_name": "恰斯卡", "aliases": ["chasca", "洽斯卡"], "tier": "S", "team": ["穿透隊"], "notes": "" },
+      { "canonical_name": "愛可菲", "aliases": ["愛可飛", "escoffier"], "tier": "S", "team": ["水冰隊"], "notes": "水冰專輔，愛可飛是常見打字錯誤" },
+      { "canonical_name": "雷電將軍", "aliases": ["雷電", "雷神", "raiden shogun", "雷將"], "tier": "S", "team": ["感電隊"], "notes": "" },
+      { "canonical_name": "杜林", "aliases": ["durin"], "tier": "S", "team": ["魔導隊"], "notes": "魔導新角色，價值偏高，可與5/20推出的尼可組隊" },
+      { "canonical_name": "千織", "aliases": ["chiori"], "tier": "B", "team": [], "notes": "一般角色" },
+      { "canonical_name": "胡桃", "aliases": ["hutao", "胡"], "tier": "A", "team": ["蒸發隊"], "notes": "" },
+      { "canonical_name": "甘雨", "aliases": ["ganyu"], "tier": "A", "team": ["永凍隊"], "notes": "" },
+      { "canonical_name": "神里綾華", "aliases": ["綾華", "ayaka"], "tier": "A", "team": ["永凍隊"], "notes": "" },
+      { "canonical_name": "七七", "aliases": ["qiqi"], "tier": "C", "team": [], "notes": "常駐廢角，爛金標誌" }
+    ],
+    "typo_log": {
+      "阿雷奇諾": "阿蕾奇諾",
+      "西諾寧": "希諾寧",
+      "烏拉瑪": "菈烏瑪",
+      "愛可飛": "愛可菲",
+      "中離": "鍾離",
+      "鐘離": "鍾離",
+      "絲科克": "絲柯克"
+    },
+    "ignore_words": ["璃兒", "月卡", "限角", "星見雅", "珊瑚"],
+    "team_comps": {
+      "月體系": { "core": ["哥倫比婭", "菲林斯", "伊涅芙"], "variants": ["月感電隊", "月結晶隊", "月綻放隊"], "notes": "所有月隊皆以哥倫比婭為核心" },
+      "月感電隊": { "core": ["菲林斯", "哥倫比婭", "伊涅芙"], "flex": ["鍾離"], "keywords": ["月感電", "女月感電"] },
+      "月結晶隊": { "core": ["茲白", "哥倫比婭", "絲柯克"], "keywords": ["月結晶", "白哥倫絲柯"] },
+      "火神隊": { "core": ["瑪薇卡", "茜特菈莉"], "flex": ["希諾寧", "阿蕾奇諾"], "keywords": ["火神隊", "火神頂配", "僕人瑪薇卡"] },
+      "龍王隊": { "core": ["那維萊特", "芙寧娜"], "flex": ["楓原萬葉", "鍾離"], "keywords": ["龍王隊", "芙寧萬葉鍾"] },
+      "水冰隊": { "core": ["絲柯克", "愛可菲"], "keywords": ["水冰"] },
+      "魔導隊": { "core": ["杜林"], "coming_soon": ["尼可(5/20)"], "keywords": ["魔導"], "notes": "杜林+尼可新體系" }
+    }
+  },
+
+  "hsr": {
+    "characters": [
+      { "canonical_name": "流螢", "aliases": ["薩姆", "firefly", "sam"], "tier": "S", "team": ["擊破隊"], "notes": "擊破隊主C" },
+      { "canonical_name": "黃泉", "aliases": ["巡海遊俠", "acheron"], "tier": "S", "team": ["虛無隊", "感電隊"], "notes": "" },
+      { "canonical_name": "遐蝶", "aliases": ["霞蝶", "瑕蝶"], "tier": "SS", "team": ["記憶隊", "追擊隊"], "notes": "霞蝶/瑕蝶均為打字錯誤" },
+      { "canonical_name": "風堇", "aliases": ["風菫", "風瑾", "robin"], "tier": "SS", "team": ["記憶隊", "追擊隊"], "notes": "風菫/風瑾是常見錯字" },
+      { "canonical_name": "昔漣", "aliases": ["昔連", "惜漣", "lingsha"], "tier": "SS", "team": ["記憶隊"], "notes": "昔連/惜漣是常見錯字" },
+      { "canonical_name": "長夜月", "aliases": [], "tier": "SS", "team": ["記憶隊"], "notes": "記憶隊核心起手" },
+      { "canonical_name": "花火", "aliases": ["sparkle"], "tier": "S", "team": ["追擊隊"], "notes": "舊版輔助，注意和火花(不同角色)區分" },
+      { "canonical_name": "火花", "aliases": [], "tier": "S", "team": ["歡愉戰艦"], "notes": "歡愉隊副C，CP值偏高，與花火完全不同" },
+      { "canonical_name": "爻光", "aliases": [], "tier": "S", "team": ["歡愉戰艦"], "notes": "歡愉隊成員" },
+      { "canonical_name": "飛霄", "aliases": ["飛蕭"], "tier": "B", "team": ["追擊隊"], "notes": "舊角色，價值普通，飛蕭是常見錯字" },
+      { "canonical_name": "緹寶", "aliases": ["提寶"], "tier": "SS", "team": ["通用"], "notes": "通用輔助，提寶是常見錯字" },
+      { "canonical_name": "大理花", "aliases": [], "tier": "S", "team": ["擊破隊"], "notes": "擊破隊成員，和大黑塔是不同角色" },
+      { "canonical_name": "大黑塔", "aliases": [], "tier": "SS", "team": ["多體系"], "notes": "通用型輔助，和大理花是不同角色" },
+      { "canonical_name": "靈砂", "aliases": [], "tier": "S", "team": ["擊破隊"], "notes": "擊破隊成員" },
+      { "canonical_name": "忘歸人", "aliases": [], "tier": "S", "team": ["擊破隊"], "notes": "擊破隊成員" },
+      { "canonical_name": "丹恆藤荒", "aliases": ["盾丹"], "tier": "S", "team": [], "notes": "盾丹是縮寫，與丹恆/丹恆飲月不同" },
+      { "canonical_name": "不死途", "aliases": ["不死徒"], "tier": "B", "team": [], "notes": "新角色，一般般，不死徒是常見打字錯誤" },
+      { "canonical_name": "星期日", "aliases": ["sunday"], "tier": "SS", "team": ["記憶隊", "追擊隊"], "notes": "輔助角色，非遐蝶，是獨立英文名sunday的中文名" },
+      { "canonical_name": "海瑟音", "aliases": [], "tier": "S", "team": ["DoT隊"], "notes": "DoT隊成員" },
+      { "canonical_name": "黑天鵝", "aliases": [], "tier": "S", "team": ["DoT隊"], "notes": "DoT隊成員" },
+      { "canonical_name": "阿格萊雅", "aliases": ["阿格"], "tier": "C", "team": [], "notes": "便宜角色，阿格是常見縮寫" },
+      { "canonical_name": "符玄", "aliases": ["fu xuan"], "tier": "C", "team": [], "notes": "小保角色" },
+      { "canonical_name": "丹恆騰荒", "aliases": ["騰荒"], "tier": "B", "team": [], "notes": "丹恆的限定版本，騰荒是常見縮寫" },
+      { "canonical_name": "丹恆飲月", "aliases": ["飲月"], "tier": "B", "team": [], "notes": "丹恆的另一限定版本，飲月是常見縮寫" },
+      { "canonical_name": "卡芙卡", "aliases": ["kafka", "卡媽"], "tier": "S", "team": ["DoT隊"], "notes": "" },
+      { "canonical_name": "砂金", "aliases": ["總管", "aventurine"], "tier": "S", "team": [], "notes": "" },
+      { "canonical_name": "阮梅", "aliases": ["jade"], "tier": "C", "team": [], "notes": "輔助，但曾送過，不值錢" },
+      { "canonical_name": "鏡流", "aliases": [], "tier": "C", "team": [], "notes": "小保角色，不值錢" },
+      { "canonical_name": "知更鳥", "aliases": ["robin"], "tier": "SS", "team": ["記憶隊", "追擊隊"], "notes": "滿命可能值錢，其他視為舊角色" },
+      { "canonical_name": "銀狼", "aliases": [], "tier": "C", "team": [], "notes": "舊角色，不值錢。與銀狼LV.999完全不同" },
+      { "canonical_name": "銀狼LV.999", "aliases": ["銀狼lv999", "新銀狼"], "tier": "SS", "team": ["歡愉戰艦"], "notes": "4/22新角色！有火花或爻光任一即非常值錢，無隊友本體也不錯" },
+      { "canonical_name": "Saber", "aliases": [], "tier": "B", "team": [], "notes": "一般主C角色" },
+      { "canonical_name": "瓦爾特楊", "aliases": ["老楊", "welt", "瓦爾特"], "tier": "C", "team": [], "notes": "小保角色，不值錢" },
+      { "canonical_name": "布洛妮婭", "aliases": ["鴨", "bronya"], "tier": "C", "team": [], "notes": "小保角色，不值錢。鴨是賣家俗稱" },
+      { "canonical_name": "白厄", "aliases": [], "tier": "SS", "team": ["白厄隊"], "notes": "" },
+      { "canonical_name": "那刻夏", "aliases": ["那刻連"], "tier": "SS", "team": [], "notes": "" },
+      { "canonical_name": "忌炎", "aliases": [], "tier": "S", "team": ["擊破隊"], "notes": "莫寧+忌炎常被合稱「莫忌」" },
+      { "canonical_name": "莫寧", "aliases": ["莫忌(+忌炎合稱)"], "tier": "S", "team": ["擊破隊"], "notes": "莫忌=莫寧+忌炎的合稱" }
+    ],
+    "typo_log": {
+      "霞蝶": "遐蝶",
+      "瑕蝶": "遐蝶",
+      "風菫": "風堇",
+      "風瑾": "風堇",
+      "飛蕭": "飛霄",
+      "提寶": "緹寶",
+      "昔連": "昔漣",
+      "惜漣": "昔漣",
+      "不死徒": "不死途"
+    },
+    "ignore_words": ["莫忌", "王棋", "金靈", "65螢", "65忘", "63泉", "61昔", "限金", "限專", "五星角色", "使用者未設"],
+    "team_comps": {
+      "記憶戰艦": { "core": ["長夜月", "遐蝶", "風堇", "昔漣"], "keywords": ["記憶戰艦", "記憶隊", "長夜月記憶"], "notes": "崩鐵目前最頂流隊伍之一" },
+      "歡愉戰艦": { "core": ["火花", "爻光"], "upgrade": ["銀狼LV.999(4/22)"], "keywords": ["歡愉戰艦", "歡愉隊", "歡愉體系"], "notes": "火花+爻光+銀狼LV.999三核" },
+      "擊破隊": { "core": ["流螢", "忘歸人", "大理花", "靈砂"], "keywords": ["擊破隊", "流螢擊破"], "notes": "" }
+    }
+  },
+
+  "wuwa": {
+    "characters": [
+      { "canonical_name": "守岸人", "aliases": ["守岸", "camellya"], "tier": "SS", "team": [], "notes": "守岸是常見縮寫" },
+      { "canonical_name": "今汐", "aliases": ["jinhsi"], "tier": "SS", "team": [], "notes": "" },
+      { "canonical_name": "長離", "aliases": ["changli"], "tier": "SS", "team": [], "notes": "" },
+      { "canonical_name": "吟霖", "aliases": ["yinlin"], "tier": "SS", "team": [], "notes": "" },
+      { "canonical_name": "愛彌斯", "aliases": ["小愛", "艾彌斯"], "tier": "SS", "team": [], "notes": "小愛是常見俗稱，艾彌斯亦是常見寫法" },
+      { "canonical_name": "卡提希婭", "aliases": ["卡提", "卡夏"], "tier": "SS", "team": [], "notes": "卡提是常見縮寫" },
+      { "canonical_name": "菲比", "aliases": [], "tier": "S", "team": [], "notes": "請從最新tier表確認強度" },
+      { "canonical_name": "露帕", "aliases": [], "tier": "S", "team": [], "notes": "請從最新tier表確認強度" },
+      { "canonical_name": "夏空", "aliases": [], "tier": "S", "team": [], "notes": "請從最新tier表確認強度" },
+      { "canonical_name": "陸赫斯", "aliases": [], "tier": "SS", "team": [], "notes": "請從最新tier表確認強度" },
+      { "canonical_name": "弗洛洛", "aliases": ["弗洛", "弗"], "tier": "S", "team": [], "notes": "" },
+      { "canonical_name": "莫寧", "aliases": [], "tier": "S", "team": [], "notes": "鳴潮角色，注意與崩鐵莫寧同名" },
+      { "canonical_name": "椿", "aliases": [], "tier": "S", "team": [], "notes": "" },
+      { "canonical_name": "贊妮", "aliases": ["贊尼"], "tier": "S", "team": [], "notes": "贊尼是常見別寫；贊菲=贊妮+菲比的合稱縮寫" },
+      { "canonical_name": "奧古斯塔", "aliases": ["奧古"], "tier": "S", "team": [], "notes": "奧古是常見縮寫" },
+      { "canonical_name": "忌炎", "aliases": ["莫忌(+莫寧合稱)"], "tier": "S", "team": [], "notes": "鳴潮角色" },
+      { "canonical_name": "維里奈", "aliases": ["維理奈"], "tier": "A", "team": [], "notes": "通用輔助" },
+      { "canonical_name": "千咲", "aliases": [], "tier": "A", "team": [], "notes": "" },
+      { "canonical_name": "日月", "aliases": [], "tier": "S", "team": [], "notes": "鳴潮角色" },
+      { "canonical_name": "林奈", "aliases": ["琳奈", "林奈"], "tier": "S", "team": [], "notes": "" }
+    ],
+    "ignore_words": ["珊瑚"],
+    "combined_shorthands": {
+      "贊菲": ["贊妮", "菲比"],
+      "莫忌": ["莫寧", "忌炎"]
+    },
+    "notes": "鳴潮角色tier請以wutheringwaves_tier_list.json為準，此處僅記錄別名與特殊資訊"
+  },
+
+  "zzz": {
+    "characters": [
+      { "canonical_name": "葉瞬光", "aliases": ["師姐", "zhu yuan"], "tier": "SS", "team": ["三虛狩"], "notes": "絕區零目前最值錢角色之一，師姐是常見俗稱" },
+      { "canonical_name": "儀玄", "aliases": [], "tier": "SS", "team": ["三虛狩"], "notes": "絕區零目前最值錢角色之一" },
+      { "canonical_name": "星見雅", "aliases": ["雅", "miyabi"], "tier": "SS", "team": ["三虛狩"], "notes": "絕區零目前最值錢角色之一" },
+      { "canonical_name": "艾蓮", "aliases": ["鯊魚", "ellen"], "tier": "SS", "team": [], "notes": "" },
+      { "canonical_name": "簡", "aliases": ["jane doe", "jane"], "tier": "SS", "team": [], "notes": "" },
+      { "canonical_name": "月城柳", "aliases": ["柳", "yanagi"], "tier": "SS", "team": [], "notes": "" }
+    ],
+    "ignore_words": [],
+    "team_comps": {
+      "三虛狩": {
+        "core": ["葉瞬光", "儀玄", "星見雅"],
+        "keywords": ["三虛狩"],
+        "notes": "ZZZ目前最值錢的3大角色組合，三者都有就是頂配帳號"
+      },
+      "三天使": {
+        "core": ["千夏", "愛芮", "南宮羽"],
+        "keywords": ["三天使"],
+        "notes": "ZZZ角色組合，還不錯"
+      }
+    },
+    "characters_extra": [
+      { "canonical_name": "千夏", "aliases": [], "tier": "S", "team": ["三天使"], "notes": "ZZZ角色" },
+      { "canonical_name": "愛芮", "aliases": [], "tier": "S", "team": ["三天使"], "notes": "ZZZ角色" },
+      { "canonical_name": "南宮羽", "aliases": [], "tier": "S", "team": ["三天使"], "notes": "ZZZ角色" }
+    ]
+  }
+}
