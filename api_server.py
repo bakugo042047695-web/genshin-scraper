@@ -19,6 +19,8 @@ def _setup_gcp_key():
     if not b64:
         print("[API] GCP_KEY_B64 not set, skipping gcp_key.json write")
         return
+    # 補回 Railway 可能截掉的 base64 padding
+    b64 += "=" * ((-len(b64)) % 4)
     key_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "gcp_key.json")
     try:
         decoded = base64.b64decode(b64).decode("utf-8")
