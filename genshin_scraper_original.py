@@ -342,30 +342,28 @@ def _mongo_key(filepath):
 def get_gsheet():
     scopes = ["https://spreadsheets.google.com/feeds",
               "https://www.googleapis.com/auth/drive"]
-    # 優先從 Base64 環境變數讀取（最穩定，避免換行符問題）
-    gcp_key_b64 = os.environ.get("GCP_KEY_B64", "")
-    if gcp_key_b64:
+    # 1. 優先讀 gcp_key.json（由 api_server.py 啟動時解碼寫入，最可靠）
+    if os.path.exists(GCP_KEY_FILE):
+        print(f"[GCP] 使用 gcp_key.json 檔案")
+        creds = Credentials.from_service_account_file(GCP_KEY_FILE, scopes=scopes)
+        return gspread.authorize(creds)
+    # 2. 三段拼接 B64（Railway 分段存放，不截斷）
+    p1 = os.environ.get("GCP_KEY_PART_1", "").strip()
+    if p1:
         import base64
-        info = json.loads(base64.b64decode(gcp_key_b64).decode("utf-8"))
+        b64 = p1 + os.environ.get("GCP_KEY_PART_2","").strip() + os.environ.get("GCP_KEY_PART_3","").strip()
+        b64 += "=" * ((-len(b64)) % 4)
+        info = json.loads(base64.b64decode(b64).decode("utf-8"))
+        print(f"[GCP] 使用 GCP_KEY_PART 三段組合，project={info.get('project_id','?')}")
         creds = Credentials.from_service_account_info(info, scopes=scopes)
-    else:
-        # 次選：從 JSON 環境變數讀取（可能因換行符失敗）
-        gcp_key_json = os.environ.get("GCP_KEY_JSON", "")
-        if gcp_key_json:
-            # 修正 Railway 可能把 \n 轉為真正換行的問題
-            gcp_key_json = gcp_key_json.replace('\r\n', '\\n').replace('\r', '\\n')
-            # 若 private_key 中有未跳脫換行，修正之
-            import re
-            gcp_key_json = re.sub(r'(?<!\\)\n', '\\n', gcp_key_json)
-            info = json.loads(gcp_key_json)
-            creds = Credentials.from_service_account_info(info, scopes=scopes)
-        else:
-            # fallback：本機開發時讀 gcp_key.json 檔案
-            creds = Credentials.from_service_account_file(GCP_KEY_FILE, scopes=scopes)
-    return gspread.authorize(creds)
+        return gspread.authorize(creds)
+    raise RuntimeError("找不到 GCP 憑證：請設定 GCP_KEY_PART_1/2/3 或確認 gcp_key.json 存在")
 
 
 def init_gsheet(gc, game_name):
+    if gc is None:
+        print(f"  [跳過寫入] GC 未連線，略過 {game_name} 在架分頁")
+        return None
     try:
         sh = gc.open_by_key(SPREADSHEET_ID)
         try:
@@ -382,6 +380,9 @@ def init_gsheet(gc, game_name):
         return None
 
 def init_gsheet_completed(gc, game_name):
+    if gc is None:
+        print(f"  [跳過寫入] GC 未連線，略過 {game_name} 成交紀錄分頁")
+        return None
     sheet_name = f"{game_name}-成交紀錄"
     try:
         sh = gc.open_by_key(SPREADSHEET_ID)
