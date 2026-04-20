@@ -14,17 +14,27 @@ MONGO_URI = os.environ.get("MONGODB_URI", "mongodb+srv://genshin:genshin123@clus
 
 # ─── 啟動時解碼 GCP Key ───────────────────────────────────────────────────────
 def _setup_gcp_key():
-    """將 GCP_KEY_B64 env var 解碼成 gcp_key.json，讓爬蟲直接讀檔案（最穩定）"""
-    b64 = os.environ.get("GCP_KEY_B64", "").strip()
+    """將 GCP key 解碼成 gcp_key.json（支援三段拼接，避免 Railway 截斷）"""
+    # 優先用三段拼接（最穩定，每段 ~1000 字，Railway 不會截斷）
+    p1 = os.environ.get("GCP_KEY_PART_1", "").strip()
+    p2 = os.environ.get("GCP_KEY_PART_2", "").strip()
+    p3 = os.environ.get("GCP_KEY_PART_3", "").strip()
+    if p1:
+        b64 = p1 + p2 + p3
+    else:
+        # fallback：舊版單段 B64
+        b64 = os.environ.get("GCP_KEY_B64", "").strip()
+
     if not b64:
-        print("[API] GCP_KEY_B64 not set, skipping gcp_key.json write")
+        print("[API] 無 GCP_KEY_PART_1 也無 GCP_KEY_B64，略過 gcp_key.json 寫入")
         return
+
     # 補回 Railway 可能截掉的 base64 padding
     b64 += "=" * ((-len(b64)) % 4)
     key_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "gcp_key.json")
     try:
         decoded = base64.b64decode(b64).decode("utf-8")
-        json.loads(decoded)  # 驗證 JSON 格式正確
+        json.loads(decoded)  # 驗證 JSON 正確
         with open(key_path, "w", encoding="utf-8") as f:
             f.write(decoded)
         print(f"[API] gcp_key.json written OK ({len(decoded)} chars)")
