@@ -494,9 +494,13 @@ def update_gsheet(ws, new_items, thresholds, sellers):
             if r['url'] in existing_urls:
                 continue
             cp1, cp2, cpw = r['cp1'], r['cp2'], r['cpw']
+            # cpw 觸發時要求 cp1 也在合理範圍，防止標題提及0命角色造成 cpw 虛低誤報
+            cpw_ok = (cpw != float('inf') and
+                      cpw <= thresholds['cpw_threshold'] and
+                      cp1 <= thresholds['cp1_threshold'] * 3)
             is_good = (cp1 <= thresholds['cp1_threshold'] or
                        cp2 <= thresholds['cp2_threshold'] or
-                       cpw <= thresholds['cpw_threshold'])
+                       cpw_ok)
             good_str = "✅ 優於均值" if is_good else ""
             const_str = ", ".join(r.get('max_const', []))
             cp1_str = f"{cp1:.2f}" if cp1 != float('inf') else "-"
@@ -1096,7 +1100,16 @@ def is_valid_market_data(title, price):
     return True
 
 def update_stats(stats, new_trades, filepath):
-    valid = [r for r in new_trades if r['cp1'] != float('inf') and is_valid_market_data(r['title'], r['price'])]
+    def _is_clean_cp(r):
+        """排除 cpw 比 cp1 低太多的污染記錄（標題提及0命高tier角色使 weighted_score 虛高）"""
+        cpw = r.get('cpw')
+        if cpw and r['cp1'] > 0 and cpw < r['cp1'] * 0.15:
+            return False
+        return True
+    valid = [r for r in new_trades
+             if r['cp1'] != float('inf')
+             and is_valid_market_data(r['title'], r['price'])
+             and _is_clean_cp(r)]
     if "records" not in stats:
         stats["records"] = []
     for r in valid:
@@ -1136,6 +1149,11 @@ def get_thresholds(stats):
         return {"cp1_threshold": 30, "cp2_threshold": 25, "cpw_threshold": 20,
                 "cp1_avg": 30, "cp2_avg": 25, "cpw_avg": 20,
                 "price_avg": 0, "gold_char_avg": 0}
+
+    # 過濾污染記錄：cpw 比 cp1 低 85% 以上（標題提及0命角色造成 weighted_score 虛高）
+    records = [r for r in records
+               if not (r.get("cpw") and r.get("cp1", 0) > 0
+                       and r["cpw"] < r["cp1"] * 0.15)]
 
     def get_trimmed_mean(vals):
         if not vals: return 0
@@ -1256,9 +1274,12 @@ def update_excel(filepath, new_items, thresholds, sellers):
         if r['url'] in existing_urls:
             continue
         cp1, cp2, cpw = r['cp1'], r['cp2'], r['cpw']
+        cpw_ok = (cpw != float('inf') and
+                  cpw <= thresholds['cpw_threshold'] and
+                  cp1 <= thresholds['cp1_threshold'] * 3)
         is_good = (cp1 <= thresholds['cp1_threshold'] or
                    cp2 <= thresholds['cp2_threshold'] or
-                   cpw <= thresholds['cpw_threshold'])
+                   cpw_ok)
         good_str = "✅ 優於均值" if is_good else ""
         const_str = ", ".join(r.get('max_const', []))
         cp1_str = f"{cp1:.2f}" if cp1 != float('inf') else "-"

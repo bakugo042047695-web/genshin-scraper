@@ -1,0 +1,371 @@
+{
+  "count": 40,
+  "cp1_sum": 2120.5,
+  "cp2_sum": 1594.64,
+  "cpw_sum": 1696.32,
+  "price_sum": 195227,
+  "gold_char_sum": 629,
+  "records": [
+    {
+      "date": "2026-04-08",
+      "price": 4300,
+      "gold_char": 1,
+      "gold_weap": 1,
+      "cp1": 430.0,
+      "cp2": 286.67,
+      "cpw": null
+    },
+    {
+      "date": "2026-04-08",
+      "price": 2600,
+      "gold_char": 7,
+      "gold_weap": 5,
+      "cp1": 37.14,
+      "cp2": 27.37,
+      "cpw": 21.67
+    },
+    {
+      "date": "2026-04-08",
+      "price": 19500,
+      "gold_char": 29,
+      "gold_weap": 20,
+      "cp1": 67.24,
+      "cp2": 50.0,
+      "cpw": null
+    },
+    {
+      "date": "2026-04-08",
+      "price": 420,
+      "gold_char": 2,
+      "gold_weap": 0,
+      "cp1": 21.0,
+      "cp2": 21.0,
+      "cpw": 3.5
+    },
+    {
+      "date": "2026-04-08",
+      "price": 1622,
+      "gold_char": 8,
+      "gold_weap": 3,
+      "cp1": 20.27,
+      "cp2": 17.07,
+      "cpw": 13.52
+    },
+    {
+      "date": "2026-04-08",
+      "price": 3223,
+      "gold_char": 28,
+      "gold_weap": 10,
+      "cp1": 11.51,
+      "cp2": 9.77,
+      "cpw": null
+    },
+    {
+      "date": "2026-04-08",
+      "price": 5000,
+      "gold_char": 8,
+      "gold_weap": 5,
+      "cp1": 62.5,
+      "cp2": 47.62,
+      "cpw": 41.67
+    },
+    {
+      "date": "2026-04-08",
+      "price": 4255,
+      "gold_char": 11,
+      "gold_weap": 4,
+      "cp1": 38.68,
+      "cp2": 32.73,
+      "cpw": 11.05
+    },
+    {
+      "date": "2026-04-08",
+      "price": 3000,
+      "gold_char": 18,
+      "gold_weap": 10,
+      "cp1": 16.67,
+      "cp2": 13.04,
+      "cpw": null
+    },
+    {
+      "date": "2026-04-08",
+      "price": 3000,
+      "gold_char": 7,
+      "gold_weap": 5,
+      "cp1": 42.86,
+      "cp2": 31.58,
+      "cpw": 18.18
+    },
+    {
+      "date": "2026-04-08",
+      "price": 4000,
+      "gold_char": 17,
+      "gold_weap": 10,
+      "cp1": 23.53,
+      "cp2": 18.18,
+      "cpw": 9.52
+    },
+    {
+      "date": "2026-04-08",
+      "price": 5000,
+      "gold_char": 16,
+      "gold_weap": 8,
+      "cp1": 31.25,
+      "cp2": 25.0,
+      "cpw": 6.49
+    },
+    {
+      "date": "2026-04-08",
+      "price": 2000,
+      "gold_char": 19,
+      "gold_weap": 22,
+      "cp1": 10.53,
+      "cp2": 6.67,
+      "cpw": 18.18
+    },
+    {
+      "date": "2026-04-08",
+      "price": 4500,
+      "gold_char": 16,
+      "gold_weap": 10,
+      "cp1": 28.12,
+      "cp2": 21.43,
+      "cpw": 5.0
+    },
+    {
+      "date": "2026-04-08",
+      "price": 10639,
+      "gold_char": 23,
+      "gold_weap": 24,
+      "cp1": 46.26,
+      "cp2": 30.4,
+      "cpw": null
+    },
+    {
+      "date": "2026-04-08",
+      "price": 3999,
+      "gold_char": 15,
+      "gold_weap": 10,
+      "cp1": 26.66,
+      "cp2": 20.0,
+      "cpw": 8.51
+    },
+    {
+      "date": "2026-04-08",
+      "price": 2500,
+      "gold_char": 17,
+      "gold_weap": 10,
+      "cp1": 14.71,
+      "cp2": 11.36,
+      "cpw": 11.36
+    },
+    {
+      "date": "2026-04-08",
+      "price": 9000,
+      "gold_char": 29,
+      "gold_weap": 20,
+      "cp1": 31.03,
+      "cp2": 23.08,
+      "cpw": null
+    },
+    {
+      "date": "2026-04-08",
+      "price": 3510,
+      "gold_char": 20,
+      "gold_weap": 13,
+      "cp1": 17.55,
+      "cp2": 13.25,
+      "cpw": 6.27
+    },
+    {
+      "date": "2026-04-08",
+      "price": 6000,
+      "gold_char": 33,
+      "gold_weap": 10,
+      "cp1": 18.18,
+      "cp2": 15.79,
+      "cpw": null
+    },
+    {
+      "date": "2026-04-08",
+      "price": 650,
+      "gold_char": 10,
+      "gold_weap": 2,
+      "cp1": 6.5,
+      "cp2": 5.91,
+      "cpw": 2.28
+    },
+    {
+      "date": "2026-04-08",
+      "price": 6000,
+      "gold_char": 21,
+      "gold_weap": 14,
+      "cp1": 28.57,
+      "cp2": 21.43,
+      "cpw": 4.58
+    },
+    {
+      "date": "2026-04-08",
+      "price": 4250,
+      "gold_char": 26,
+      "gold_weap": 11,
+      "cp1": 16.35,
+      "cp2": 13.49,
+      "cpw": 3.86
+    },
+    {
+      "date": "2026-04-08",
+      "price": 3800,
+      "gold_char": 25,
+      "gold_weap": 10,
+      "cp1": 15.2,
+      "cp2": 12.67,
+      "cpw": 3.05
+    },
+    {
+      "date": "2026-04-08",
+      "price": 2400,
+      "gold_char": 22,
+      "gold_weap": 6,
+      "cp1": 10.91,
+      "cp2": 9.6,
+      "cpw": 5.33
+    },
+    {
+      "date": "2026-04-08",
+      "price": 2675,
+      "gold_char": 9,
+      "gold_weap": 6,
+      "cp1": 29.72,
+      "cp2": 22.29,
+      "cpw": null
+    },
+    {
+      "date": "2026-04-08",
+      "price": 1065,
+      "gold_char": 1,
+      "gold_weap": 1,
+      "cp1": 106.5,
+      "cp2": 71.0,
+      "cpw": null
+    },
+    {
+      "date": "2026-04-20",
+      "price": 3500,
+      "gold_char": 25,
+      "gold_weap": 19,
+      "cp1": 14.0,
+      "cp2": 10.14,
+      "cpw": null
+    },
+    {
+      "date": "2026-04-20",
+      "price": 4800,
+      "gold_char": 7,
+      "gold_weap": 3,
+      "cp1": 68.57,
+      "cp2": 56.47,
+      "cpw": null
+    },
+    {
+      "date": "2026-04-20",
+      "price": 4787,
+      "gold_char": 21,
+      "gold_weap": 13,
+      "cp1": 22.8,
+      "cp2": 17.41,
+      "cpw": null
+    },
+    {
+      "date": "2026-04-20",
+      "price": 700,
+      "gold_char": 11,
+      "gold_weap": 5,
+      "cp1": 6.36,
+      "cp2": 5.19,
+      "cpw": 2.55
+    },
+    {
+      "date": "2026-04-20",
+      "price": 10000,
+      "gold_char": 22,
+      "gold_weap": 16,
+      "cp1": 45.45,
+      "cp2": 33.33,
+      "cpw": 20.2
+    },
+    {
+      "date": "2026-04-20",
+      "price": 1200,
+      "gold_char": 4,
+      "gold_weap": 4,
+      "cp1": 30.0,
+      "cp2": 20.0,
+      "cpw": null
+    },
+    {
+      "date": "2026-04-20",
+      "price": 15500,
+      "gold_char": 18,
+      "gold_weap": 18,
+      "cp1": 86.11,
+      "cp2": 57.41,
+      "cpw": 14.69
+    },
+    {
+      "date": "2026-04-20",
+      "price": 4680,
+      "gold_char": 21,
+      "gold_weap": 12,
+      "cp1": 22.29,
+      "cp2": 17.33,
+      "cpw": null
+    },
+    {
+      "date": "2026-04-20",
+      "price": 1600,
+      "gold_char": 4,
+      "gold_weap": 4,
+      "cp1": 40.0,
+      "cp2": 26.67,
+      "cpw": 6.96
+    },
+    {
+      "date": "2026-04-20",
+      "price": 13829,
+      "gold_char": 3,
+      "gold_weap": 1,
+      "cp1": 460.97,
+      "cp2": 395.11,
+      "cpw": null
+    },
+    {
+      "date": "2026-04-20",
+      "price": 3723,
+      "gold_char": 6,
+      "gold_weap": 8,
+      "cp1": 62.05,
+      "cp2": 37.23,
+      "cpw": null
+    },
+    {
+      "date": "2026-04-20",
+      "price": 5000,
+      "gold_char": 16,
+      "gold_weap": 9,
+      "cp1": 31.25,
+      "cp2": 24.39,
+      "cpw": 6.9
+    },
+    {
+      "date": "2026-04-21",
+      "price": 7000,
+      "gold_char": 33,
+      "gold_weap": 24,
+      "cp1": 21.21,
+      "cp2": 15.56,
+      "cpw": 13.21
+    }
+  ],
+  "last_updated": "2026-04-21 00:15"
+}
