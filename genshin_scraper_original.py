@@ -952,7 +952,12 @@ def parse_title_smart(title, char_weights, alias_map):
         add_char_const(match.group(2), int(match.group(1)))
         temp_title = temp_title.replace(match.group(0), ' ')
 
-    # 5. N+M chars
+    # 4.5. Char N+M（角色在前，如「愛彌斯6+5」，先掃並清除，避免 Rule 5 誤把 6+5 算給下一個角色）
+    for match in list(re.finditer(r'([\u4e00-\u9fffA-Za-z]+)\s*(\d)\+(\d)', temp_title)):
+        add_char_const(match.group(1), int(match.group(2)), int(match.group(3)))
+        temp_title = temp_title.replace(match.group(0), ' ', 1)
+
+    # 5. N+M chars（數字在前，如「6+5 西格莉亞」）
     for match in re.finditer(r'(\d)\+(\d)\s*([\u4e00-\u9fffA-Za-z]+)', temp_title):
         add_char_const(match.group(3), int(match.group(1)), int(match.group(2)))
 

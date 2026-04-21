@@ -89,6 +89,15 @@
   ],
   "tierS": [
     {
+      "name": "愛彌斯",
+      "name_en": "Emeis",
+      "element": "水",
+      "weapon": "弓",
+      "role": "主C",
+      "rarity": 5,
+      "consensus": 5
+    },
+    {
       "name": "阿蕾奇諾",
       "name_en": "Arlecchino",
       "element": "火",
