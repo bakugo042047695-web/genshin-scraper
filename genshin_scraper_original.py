@@ -86,8 +86,24 @@ def load_tier_weights(game_name):
             if tier in HIGH_TIER_LEVELS:
                 high_tier_chars.add(name)
 
-    print(f"  📊 {game_name} Tier List 載入：{len(char_weights)} 個角色（SS/S級：{len(high_tier_chars)}個）")
-    return char_weights, new_chars, {}, high_tier_chars
+    _KB_GAME_KEY = {"原神": "genshin", "鳴潮": "wuwa", "崩鐵": "hsr", "絕區零": "zzz"}
+    alias_map = {}
+    kb_path = os.path.join(BASE_DIR, "market_knowledge_base.json")
+    if os.path.exists(kb_path):
+        try:
+            with open(kb_path, "r", encoding="utf-8") as f:
+                kb = json.load(f)
+            kb_key = _KB_GAME_KEY.get(game_name, "")
+            for ch in kb.get(kb_key, {}).get("characters", []):
+                cname = ch.get("canonical_name", "")
+                for a in ch.get("aliases", []):
+                    alias_map[a] = cname
+        except Exception as e:
+            print(f"  ⚠️ 載入 alias_map 失敗：{e}")
+
+    print(f"  📊 {game_name} Tier List 載入：{len(char_weights)} 個角色（SS/S級：{len(high_tier_chars)}個），別名：{len(alias_map)} 條）")
+    return char_weights, new_chars, alias_map, high_tier_chars
+
 
 def build_games_config():
     kb_path = os.path.join(BASE_DIR, "market_knowledge_base.json")
@@ -936,7 +952,11 @@ def parse_title_smart(title, char_weights, alias_map):
                 if r is not None:
                     char_refine[real_name] = max(char_refine.get(real_name, 0), r)
 
+    # 剝除遊戲名前綴（如「原神6命水神」→「6命水神」），避免「原神6命」被誤匹配
+    _GAME_PREFIXES = ('原神', '鳴潮', '崩鐵', '絕區零')
     temp_title = title
+    for _gp in _GAME_PREFIXES:
+        temp_title = temp_title.replace(_gp, ' ')
 
     # 1. 滿命/C6/E6 Suffix
     for match in re.finditer(r'([\u4e00-\u9fffA-Za-z]+)\s*(?:滿命|C6|E6)', temp_title):
@@ -948,20 +968,31 @@ def parse_title_smart(title, char_weights, alias_map):
         add_char_const(match.group(1), 6)
         temp_title = temp_title.replace(match.group(0), ' ')
 
-    # 3. N命 Suffix
-    for match in re.finditer(r'([\u4e00-\u9fffA-Za-z]+)\s*([0-6])命', temp_title):
-        add_char_const(match.group(1), int(match.group(2)))
-        temp_title = temp_title.replace(match.group(0), ' ')
+    def _has_known_char(word):
+        return any(name in word for name in all_names_map)
 
-    # 4. N命 Prefix
-    for match in re.finditer(r'([0-6])命\s*([\u4e00-\u9fffA-Za-z]+)', temp_title):
-        add_char_const(match.group(2), int(match.group(1)))
-        temp_title = temp_title.replace(match.group(0), ' ')
+    # 3. N命 Suffix（只有確認是已知角色才刪 temp_title，避免「原神6命」吃掉後面的命座資訊）
+    for match in list(re.finditer(r'([\u4e00-\u9fffA-Za-z]+)\s*([0-6])命', temp_title)):
+        if _has_known_char(match.group(1)):
+            add_char_const(match.group(1), int(match.group(2)))
+            temp_title = temp_title.replace(match.group(0), ' ', 1)
+
+    # 3.5. N-M 角色（如「6-2夾闌」）
+    for match in list(re.finditer(r'([0-6])-([0-5])\s*([\u4e00-\u9fffA-Za-z]+)', temp_title)):
+        add_char_const(match.group(3), int(match.group(1)), int(match.group(2)))
+        temp_title = temp_title.replace(match.group(0), ' ', 1)
+
+    # 4. N命 Prefix（同上，只有確認是已知角色才刪）
+    for match in list(re.finditer(r'([0-6])命\s*([\u4e00-\u9fffA-Za-z]+)', temp_title)):
+        if _has_known_char(match.group(2)):
+            add_char_const(match.group(2), int(match.group(1)))
+            temp_title = temp_title.replace(match.group(0), ' ', 1)
 
     # 4.5. Char N+M（角色在前，如「愛彌斯6+5」，先掃並清除，避免 Rule 5 誤把 6+5 算給下一個角色）
-    for match in list(re.finditer(r'([\u4e00-\u9fffA-Za-z]+)\s*(\d)\+(\d)', temp_title)):
-        add_char_const(match.group(1), int(match.group(2)), int(match.group(3)))
-        temp_title = temp_title.replace(match.group(0), ' ', 1)
+    for match in list(re.finditer(r'([一-鿿A-Za-z]+)\s*(\d)\+(\d)', temp_title)):
+        if _has_known_char(match.group(1)):  # 避免遊戲名或一般字詞被誤捕
+            add_char_const(match.group(1), int(match.group(2)), int(match.group(3)))
+            temp_title = temp_title.replace(match.group(0), ' ', 1)
 
     # 5. N+M chars（數字在前，如「6+5 西格莉亞」）
     for match in re.finditer(r'(\d)\+(\d)\s*([\u4e00-\u9fffA-Za-z]+)', temp_title):
