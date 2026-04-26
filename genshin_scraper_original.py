@@ -30,6 +30,8 @@ PLATFORM_FEE = 0.94
 SPREADSHEET_ID = "1SOt-2DwJVEcEgvuvQfAvW6ue6WcrnvywxPbKIJFEcYI"
 GCP_KEY_FILE = os.path.join(BASE_DIR, "gcp_key.json")  # fallback 時才用
 PRICE_TRACKER_FILE = os.path.join(BASE_DIR, "price_tracker.json")
+# 降價專區：所有遠小降價通知統一發送到此 webhook（Railway env var DISCORD_PRICE_DROP_WEBHOOK）
+PRICE_DROP_WEBHOOK = os.getenv("DISCORD_PRICE_DROP_WEBHOOK", "")
 
 TIER_LIST_FILES = {
     "原神": os.path.join(BASE_DIR, "genshin_tier_list.json"),
@@ -1601,7 +1603,9 @@ def run_game(main_page, detail_page, game_key, g, gc, price_tracker):
     save_listing_seen(g["listing_seen_file"], listing_seen_map)
 
     game_tracker = price_tracker.get(name, {})
-    game_tracker = check_price_drop(game_tracker, valid, g["discord"], emoji, name)
+    # 降價專區：優先用統一降價 webhook，未設定則 fallback 到各遂戏的撇漏專區
+    price_drop_url = PRICE_DROP_WEBHOOK if PRICE_DROP_WEBHOOK else g.get("discord_bargain", g["discord"])
+    game_tracker = check_price_drop(game_tracker, valid, price_drop_url, emoji, name)
 
     # === Custom Target Price Alerts ===
     try:
