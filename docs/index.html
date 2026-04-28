@@ -915,6 +915,9 @@ function applyFilter() {
           cCols = COLS[typeName];
       }
 
+      if (!cCols) continue;
+
+
       const g = i => row[i] || '';
       const title  = g(cCols.title);
       const sellerStr = g(cCols.seller);
@@ -1010,7 +1013,7 @@ function applyFilter() {
 
 function renderResults(items, isFavoritesMode = false) {
   const el = document.getElementById('resultsInner');
-  if (!items.length) {
+  if (!items.length && !(currentSheet === 'seller' && historyMatchedItems.length > 0)) {
     const msg = isFavoritesMode ? '目前沒有收藏的商品' : (rawRows.length ? '無符合結果' : '尚未拉取資料');
     const sub = isFavoritesMode ? '點擊卡片右上角星號可加入追蹤' : (rawRows.length ? '放寬條件試試看' : '按下搜尋按鈕開始');
     el.innerHTML = `<div class="empty">
