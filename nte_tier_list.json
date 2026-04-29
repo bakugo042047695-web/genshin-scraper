@@ -1,0 +1,24 @@
+{
+    "highValueFor8591": [
+        "娜娜莉", "小吱", "九原", "早霧", "白藏", "達芙蒂爾", "哈尼婭",
+        "法帝婭", "哈索爾", "安魂曲"
+    ],
+    "tierSS": [
+        {"name": "娜娜莉", "consensus": 3}
+    ],
+    "tierS": [
+        {"name": "小吱",     "consensus": 1},
+        {"name": "九原",     "consensus": 1},
+        {"name": "早霧",     "consensus": 1},
+        {"name": "白藏",     "consensus": 1},
+        {"name": "達芙蒂爾", "consensus": 1},
+        {"name": "哈尼婭",   "consensus": 1},
+        {"name": "法帝婭",   "consensus": 1},
+        {"name": "哈索爾",   "consensus": 1},
+        {"name": "安魂曲",   "consensus": 1}
+    ],
+    "tierA": [],
+    "tierB": [],
+    "tierC": [],
+    "tierD": []
+}

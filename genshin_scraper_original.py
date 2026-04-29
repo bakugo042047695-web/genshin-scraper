@@ -38,6 +38,7 @@ TIER_LIST_FILES = {
     "鳴潮": os.path.join(BASE_DIR, "wutheringwaves_tier_list.json"),
     "崩鐵": os.path.join(BASE_DIR, "hsr_tier_list.json"),
     "絕區零": os.path.join(BASE_DIR, "zzz_tier_list.json"),
+    "異環": os.path.join(BASE_DIR, "nte_tier_list.json"),
 }
 
 TIER_WEIGHTS = {
@@ -86,7 +87,7 @@ def load_tier_weights(game_name):
             if tier in HIGH_TIER_LEVELS:
                 high_tier_chars.add(name)
 
-    _KB_GAME_KEY = {"原神": "genshin", "鳴潮": "wuwa", "崩鐵": "hsr", "絕區零": "zzz"}
+    _KB_GAME_KEY = {"原神": "genshin", "鳴潮": "wuwa", "崩鐵": "hsr", "絕區零": "zzz", "異環": "nte"}
     alias_map = {}
     kb_path = os.path.join(BASE_DIR, "market_knowledge_base.json")
     if os.path.exists(kb_path):
@@ -181,6 +182,21 @@ def build_games_config():
             "history_file": os.path.join(BASE_DIR, "zzz_completed_history.json"),
             "listing_seen_file": os.path.join(BASE_DIR, "zzz_listing_seen.json"),
             "seller_file": os.path.join(BASE_DIR, "zzz_sellers.json"),
+        },
+        "異環": {
+            "emoji": "⚡",
+            # 剛開服，不加 server filter，看全部帳號
+            "list_url": "https://www.8591.com.tw/v3/mall/list/60543?searchGame=60543&searchType=2&post_time_sort=1",
+            "completed_url": "https://www.8591.com.tw/v3/mall/list/60543?searchGame=60543&searchType=2&completed=1&post_time_sort=1",
+            # Discord webhooks 可從 Railway env var 設定，未設則發至各游戲主頻道
+            "discord": os.getenv("DISCORD_NTE_WEBHOOK", ""),
+            "discord_bargain": os.getenv("DISCORD_NTE_BARGAIN_WEBHOOK", ""),
+            "discord_maxconst": os.getenv("DISCORD_NTE_MAXCONST_WEBHOOK", ""),
+            "excel": os.path.join(BASE_DIR, "nte_listings.xlsx"),
+            "stats_file": os.path.join(BASE_DIR, "nte_market_stats.json"),
+            "history_file": os.path.join(BASE_DIR, "nte_completed_history.json"),
+            "listing_seen_file": os.path.join(BASE_DIR, "nte_listing_seen.json"),
+            "seller_file": os.path.join(BASE_DIR, "nte_sellers.json"),
         },
     }
 

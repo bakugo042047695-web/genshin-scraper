@@ -1198,5 +1198,19 @@
         "notes": "ZZZ角色"
       }
     ]
+  },
+  "nte": {
+    "characters": [
+      { "canonical_name": "娜娜莉", "aliases": ["Nanally", "nanally"], "tier": "SS", "team": [], "notes": "限定S，開服唯一限定" },
+      { "canonical_name": "小吱",   "aliases": ["Chiz", "chiz"],       "tier": "S",  "team": [], "notes": "常駐S" },
+      { "canonical_name": "九原",   "aliases": ["Jiuyuan", "jiuyuan"], "tier": "S",  "team": [], "notes": "常駐S，副C兼奶" },
+      { "canonical_name": "早霧",   "aliases": ["Sakiri", "sakiri"],   "tier": "S",  "team": [], "notes": "常駐S，輔助/控制" },
+      { "canonical_name": "白藏",   "aliases": ["Baicang", "baicang"], "tier": "S",  "team": [], "notes": "常駐S" },
+      { "canonical_name": "達芙蒂爾", "aliases": ["Daffodill", "daffodill", "達芙"], "tier": "S", "team": [], "notes": "常駐S" },
+      { "canonical_name": "哈尼婭", "aliases": ["Haniel", "haniel"],   "tier": "S",  "team": [], "notes": "常駐S，攻擊輔助" },
+      { "canonical_name": "法帝婭", "aliases": ["Fadia", "fadia"],     "tier": "S",  "team": [], "notes": "常駐S" },
+      { "canonical_name": "哈索爾", "aliases": ["Hathor", "hathor"],   "tier": "S",  "team": [], "notes": "常駐S" },
+      { "canonical_name": "安魂曲", "aliases": ["Lacrimosa", "lacrimosa"], "tier": "S", "team": [], "notes": "常駐S" }
+    ]
   }
-}
+}

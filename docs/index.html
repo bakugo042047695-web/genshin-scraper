@@ -275,6 +275,8 @@
     <div class="tab" data-sheet="鳴潮-成交紀錄" data-type="completed">鳴潮成交</div>
     <div class="tab" data-sheet="絕區零" data-type="in_progress">絕區零在架</div>
     <div class="tab" data-sheet="絕區零-成交紀錄" data-type="completed">絕區零成交</div>
+    <div class="tab" data-sheet="異環" data-type="in_progress" style="border-color: #FF6B9D; color: #FF6B9D;">⚡異環在架</div>
+    <div class="tab" data-sheet="異環-成交紀錄" data-type="completed" style="border-color: #FF6B9D; color: #FF6B9D;">⚡異環成交</div>
         <div class="tab" data-sheet="seller" data-type="seller" style="border-color: #00D4FF; color: #00D4FF;">🕵️ 賣家查水表</div>
     <div class="tab" data-sheet="favorites" data-type="favorites" style="border-color: var(--gold); color: var(--gold);">⭐️ 追蹤清單</div>
   </div>
@@ -569,8 +571,8 @@ async function doSearch() {
   if (btn) btn.disabled = true;
 
   if (currentSheet === 'seller') {
-     setStatus('連線全網 Google Sheets 中 (共 8 份)…', true);
-     const sheets = ['原神', '崩鐵', '鳴潮', '絕區零'];
+     setStatus('連線全網 Google Sheets 中 (共 10 份)…', true);
+     const sheets = ['原神', '崩鐵', '鳴潮', '絕區零', '異環'];
      const p = [];
      sheets.forEach(s => {
        p.push(fetch(csvUrl(s)).then(r => r.text()).then(t => ({ game: s, type: 'in_progress', text: t })));
