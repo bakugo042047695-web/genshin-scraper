@@ -1446,9 +1446,16 @@ def scrape_pages(main_page, base_url, max_pages, label="",
                     if post_time and re.match(r'^\(.*\)$', post_time.strip()):
                         post_time = ''
 
-                    if any(kw in title for kw in TRASH_KEYWORDS):
+                    is_trash = False
+                    for kw in TRASH_KEYWORDS:
+                        if kw in title:
+                            if "60543" in base_url and kw == "初始號":
+                                continue  # 異環剛開服，放行初始號
+                            is_trash = True
+                            break
+                    if is_trash:
                         continue
-                    if price < 100:
+                    if price < 100 and not ("60543" in base_url and price >= 50):
                         continue
                     if not detail_url:
                         continue
@@ -1618,7 +1625,10 @@ def run_game(main_page, detail_page, game_key, g, gc, price_tracker):
     for r in listings:
         r['estimated_profit'] = estimate_profit(r, stats)
 
-    valid = [r for r in listings if r['cp1'] != float('inf') or r['cpw'] != float('inf')]
+    if name == "異環":
+        valid = listings  # 異環不論有沒有抓到金角（CP值）都視為有效
+    else:
+        valid = [r for r in listings if r['cp1'] != float('inf') or r['cpw'] != float('inf')]
     print(f"  有效帳號：{len(valid)} 個")
 
     today_str = datetime.now().strftime("%Y-%m-%d")
