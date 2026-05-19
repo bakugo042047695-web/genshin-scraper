@@ -66,6 +66,12 @@
 7. **全網賣家跨遊戲查水表功能修復**
    於 PWA 新增 🕵️ 賣家查水表 分頁，支援一鍵同時搜尋全網 8 份 (在架+成交) Google Sheets。已修復因短資料列 (short rows) 造成的 Cannot read properties of undefined 當機 Bug，以及無在架但有歷史紀錄時被誤判為空的錯誤渲染。
 
+8. **新增遊戲支援：《異環》(Neverness to Everness)**
+   - 在 `genshin_scraper_original.py` 中新增 `60543` 爬蟲配置。
+   - 建立專屬權重與別名庫：`nte_tier_list.json` 及 `market_knowledge_base.json` 的 `nte` 節點。
+   - **特殊剛開服爬取規則 (Bypass Filters)**：因應新遊戲初期特性，特別放行了「初始號」關鍵字、無視 CP 值（即使未抓取到金角也強制視為 `valid` 保留），並將爬取最低價格門檻由 100 元下調至 50 元，確保爬取資料量最大化。
+   - **前端 PWA 擴充**：`index.html` 的 Tabs 與 `seller` (查水表) 搜尋清單已同步擴充，總支援 Google Sheets 增加至 10 份。
+
 為了因應商務需求，系統剛完成以下幾個重大改版，請 Claude 特別留意這些新架構：
 
 1. **自訂目標價追蹤 (Webhook Push)**

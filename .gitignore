@@ -1,24 +1,61 @@
 # GCP 私鑰（絕對不能 commit）
 gcp_key.json
+gcp_key_oneline.txt
 
 # 動態資料 JSON（Railway 上由 MongoDB 取代，不需上傳）
 price_tracker.json
 gs_*.json
 ww_*.json
 sr_*.json
+zzz_*.json
+nte_completed_history.json
+nte_listing_seen.json
+nte_sellers.json
+nte_market_stats.json
 listing_seen.json
+global_sellers.json
+fast_sales.json
 
 # Excel 輸出（雲端不需要）
 *.xlsx
+
+# 趨勢圖（執行時動態產生）
+trend_*.png
+zzz_*.png
 
 # 其他輔助腳本（不需部署）
 check_new.py
 check_selectors.py
 import_history.py
-1.3 -version.txt
+backfill_days.py
+backfill_days_output.log
+fix_gsheet.py
+fix_shifted_rows.py
+format_sheets.py
+sync_missing_completed.py
+patch_pwa_target.py
+patch_scraper.py
+_test_sheets.js
+_check_threshold.py
+_clean_stats.py
+_diag_ww.py
+_run_nte_only.py
+_test_cp.py
+desktop_radar.py
+run_once.py
+test_gsheet.py
+typo_report.csv
+typo_summary.csv
+trigger.txt
+IG每日工作/
+
+# 版本記錄
+*.txt
 
 # Python cache
 __pycache__/
 *.pyc
 *.pyo
+
+# Local env
 .env
